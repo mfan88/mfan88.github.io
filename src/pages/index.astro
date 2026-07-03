@@ -1,17 +1,58 @@
 ---
-
+import "../styles/global.css";
+import BackToTop from "../components/BackToTop.astro";
+import ExperienceCarousel from "../components/ExperienceCarousel";
 ---
 
-<html lang="en">
+<html lang="en" class="dark h-full">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap"
+			rel="stylesheet"
+		/>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>Marcus Fan</title>
 	</head>
-	<body>
-		<h1>Astro</h1>
+	<body class="min-h-screen w-full overflow-x-hidden">
+		<section id="p1" class="screen-section hero-section">
+			<img
+				src="/assets/PortfolioSplash.png"
+				alt="Portfolio Image"
+				class="absolute inset-0 h-full w-full object-cover"
+			/>
+			<p class="hero-title">Software Engineer & Business Student</p>
+			<a
+				class="hero-linkedin"
+				href="https://www.linkedin.com/in/marcusfan888/"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				LinkedIn
+			</a>
+			<p class="hero-name">Marcus Fan</p>
+			<a class="hero-email" href="mailto:marcusfan06@gmail.com">marcusfan06@gmail.com</a>
+			<a class="scroll-down-btn" href="#p2" aria-label="Scroll to next section">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<path d="M12 5v14M5 12l7 7 7-7"></path>
+				</svg>
+			</a>
+		</section>
+		<section id="p2" class="screen-section experiences-section gradient-backdrop" aria-label="Experiences">
+			<div class="experiences-carousel-shell">
+				<ExperienceCarousel client:load />
+			</div>
+			<BackToTop />
+		</section>
+		<section id="p3" class="screen-section gradient-backdrop" aria-label="Section three">
+			<p class="coming-soon-text">more coming soon...</p>
+			<BackToTop />
+		</section>
+		<script src="../scripts/experience-carousel.ts"></script>
 	</body>
 </html>
