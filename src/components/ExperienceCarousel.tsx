@@ -43,7 +43,7 @@ const experiences: Experience[] = [
     title: "Data Acquisition Team Member (Software Engineer)",
     company: "Western Formula SAE",
     period: "2025 - Present",
-    logo: "/assets/western_formula_sae_logo.jpg",
+    logo: "/assets/western_formula_racing_logo.jpg",
     skills: ["React", "TypeScript", "Python", "Machine Learning"],
     description:
       "-Developing a machine learning model to predict the performance of a formula car based on its data.\n-Developed React components for the visualizations of CAN bus data.\n-Developed data sorting and filtering systems for faster and easier data analysis.",

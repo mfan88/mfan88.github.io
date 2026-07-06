@@ -6,6 +6,8 @@ import path from "node:path";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://mfan88.github.io",
+  base: "/",
   integrations: [react()],
   vite: {
     plugins: [tailwindcss()],
