@@ -1,0 +1,227 @@
+---
+// Fake Salesforce-Lightning-style modals. All data is fictional and the screens
+// are illustrative mockups, not screenshots of any real client system.
+const products = [
+  { name: 'Platform License', qty: 10, price: 120, disc: 10 },
+  { name: 'Implementation Services', qty: 40, price: 150, disc: 0 },
+  { name: 'Premium Support', qty: 1, price: 2400, disc: 5 },
+];
+const quotes = [
+  { id: 'Q-00124', acct: 'Northwind Traders', amt: '$12,400' },
+  { id: 'Q-00125', acct: 'Contoso Ltd', amt: '$8,900' },
+  { id: 'Q-00126', acct: 'Fabrikam Inc', amt: '$21,150' },
+  { id: 'Q-00127', acct: 'Adventure Works', amt: '$5,600' },
+];
+const before = [
+  { t: 'Rep builds quote', h: false },
+  { t: 'Asks support to check pricing', h: true },
+  { t: 'Support replies', h: true },
+  { t: 'Asks support to apply discount', h: true },
+  { t: 'Quote sent', h: false },
+];
+const after = [
+  { t: 'Rep builds quote', h: false },
+  { t: 'Pricing validated automatically', h: false },
+  { t: 'Discount applied in-flow', h: false },
+  { t: 'Quote sent', h: false },
+];
+const phases = [
+  { t: 'Align', d: 'Agree on goals and success criteria with the client project manager.' },
+  { t: 'Build', d: 'Work with the engineering team to design and implement the changes.' },
+  { t: 'Demo', d: 'Show working changes to users early and fold their feedback back in.' },
+  { t: 'Roll out', d: 'Release, support users, and check the changes are actually being used.' },
+];
+---
+<dialog id="sf-modal" aria-labelledby="sf-title">
+  <div class="sf">
+    <header class="sf-head">
+      <h4 id="sf-title">Demo</h4>
+      <button class="x" aria-label="Close" data-close>×</button>
+    </header>
+
+    <!-- CPQ -->
+    <div class="body" data-demo="cpq" data-title="Edit Quote Lines · Q-00127">
+      <p class="hint">Change quantity or discount — totals recalculate.</p>
+      <table>
+        <thead><tr><th>Product</th><th>Qty</th><th>List</th><th>Disc %</th><th class="r">Net</th></tr></thead>
+        <tbody>
+          {products.map((p) => (
+            <tr data-price={p.price}>
+              <td>{p.name}</td>
+              <td><input type="number" min="0" value={p.qty} data-f="qty" /></td>
+              <td>${p.price.toLocaleString()}</td>
+              <td><input type="number" min="0" max="100" value={p.disc} data-f="disc" /></td>
+              <td class="r net"></td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot><tr><td colspan="4" class="r"><strong>Quote total</strong></td><td class="r"><strong id="cpq-total"></strong></td></tr></tfoot>
+      </table>
+    </div>
+
+    <!-- Workflow -->
+    <div class="body" data-demo="workflow" data-title="Quote Workflow">
+      <div class="seg" role="group" aria-label="Before or after">
+        <button aria-pressed="true" data-mode="before">Before</button>
+        <button aria-pressed="false" data-mode="after">After</button>
+      </div>
+      <ol class="steps" data-list="before">
+        {before.map((s) => <li class={s.h ? 'handoff' : ''}>{s.t}{s.h && <span class="tag">Support handoff</span>}</li>)}
+      </ol>
+      <ol class="steps" data-list="after" hidden>
+        {after.map((s) => <li>{s.t}</li>)}
+      </ol>
+      <p class="hint">Illustrative flow: fewer handoffs means a shorter quote cycle.</p>
+    </div>
+
+    <!-- Bulk -->
+    <div class="body" data-demo="bulk" data-title="Quotes · Bulk Revise">
+      <table>
+        <thead><tr><th><input type="checkbox" id="bulk-all" aria-label="Select all" /></th><th>Quote</th><th>Account</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          {quotes.map((q) => (
+            <tr>
+              <td><input type="checkbox" class="bulk-row" aria-label={`Select ${q.id}`} /></td>
+              <td class="link">{q.id}</td><td>{q.acct}</td><td>{q.amt}</td>
+              <td class="status">Draft</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div class="actions"><button class="btn brand" id="bulk-go" disabled>Revise Selected (0)</button><span id="bulk-msg" class="toast" hidden></span></div>
+    </div>
+
+    <!-- Adoption -->
+    <div class="body" data-demo="adoption" data-title="Rollout Plan">
+      <ol class="path" role="tablist">
+        {phases.map((p, i) => <li><button role="tab" aria-selected={i === 0} data-phase={i}>{p.t}</button></li>)}
+      </ol>
+      <p id="phase-text" class="phase">{phases[0].d}</p>
+      <script type="application/json" id="phase-data" set:html={JSON.stringify(phases.map((p) => p.d))} />
+    </div>
+
+    <footer class="sf-foot">
+      <span class="note">Illustrative mockup · fictional data</span>
+      <button class="btn" data-close>Close</button>
+    </footer>
+  </div>
+</dialog>
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('#sf-modal')!;
+  const title = dlg.querySelector('#sf-title')!;
+  const bodies = dlg.querySelectorAll<HTMLElement>('.body');
+  const money = (n: number) => '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+  function open(name: string) {
+    bodies.forEach((b) => (b.hidden = b.dataset.demo !== name));
+    title.textContent = dlg.querySelector<HTMLElement>(`.body[data-demo="${name}"]`)!.dataset.title!;
+    dlg.showModal();
+  }
+  document.querySelectorAll<HTMLElement>('.demo-btn').forEach((b) =>
+    b.addEventListener('click', () => open(b.dataset.demo!)));
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+
+  // CPQ
+  const rows = dlg.querySelectorAll<HTMLElement>('[data-demo="cpq"] tbody tr');
+  function calc() {
+    let total = 0;
+    rows.forEach((r) => {
+      const qty = +r.querySelector<HTMLInputElement>('[data-f=qty]')!.value || 0;
+      const disc = Math.min(100, +r.querySelector<HTMLInputElement>('[data-f=disc]')!.value || 0);
+      const net = qty * +r.dataset.price! * (1 - disc / 100);
+      r.querySelector('.net')!.textContent = money(net);
+      total += net;
+    });
+    dlg.querySelector('#cpq-total')!.textContent = money(total);
+  }
+  rows.forEach((r) => r.addEventListener('input', calc));
+  calc();
+
+  // Workflow
+  dlg.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) =>
+    b.addEventListener('click', () => {
+      dlg.querySelectorAll('[data-mode]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      dlg.querySelectorAll<HTMLElement>('[data-list]').forEach((l) => (l.hidden = l.dataset.list !== b.dataset.mode));
+    }));
+
+  // Bulk revise
+  const all = dlg.querySelector<HTMLInputElement>('#bulk-all')!;
+  const checks = [...dlg.querySelectorAll<HTMLInputElement>('.bulk-row')];
+  const go = dlg.querySelector<HTMLButtonElement>('#bulk-go')!;
+  const msg = dlg.querySelector<HTMLElement>('#bulk-msg')!;
+  function sync() {
+    const n = checks.filter((c) => c.checked).length;
+    go.textContent = `Revise Selected (${n})`;
+    go.disabled = n === 0;
+    all.checked = n === checks.length;
+  }
+  all.addEventListener('change', () => { checks.forEach((c) => (c.checked = all.checked)); sync(); });
+  checks.forEach((c) => c.addEventListener('change', sync));
+  go.addEventListener('click', () => {
+    const picked = checks.filter((c) => c.checked);
+    picked.forEach((c) => {
+      const st = c.closest('tr')!.querySelector('.status')!;
+      st.textContent = 'Revised';
+      st.classList.add('done');
+      c.checked = false;
+    });
+    sync();
+    msg.textContent = `${picked.length} quote${picked.length > 1 ? 's' : ''} revised`;
+    msg.hidden = false;
+  });
+
+  // Adoption
+  const texts: string[] = JSON.parse(dlg.querySelector('#phase-data')!.textContent!);
+  dlg.querySelectorAll<HTMLButtonElement>('[data-phase]').forEach((b) =>
+    b.addEventListener('click', () => {
+      dlg.querySelectorAll('[data-phase]').forEach((o) => o.setAttribute('aria-selected', String(o === b)));
+      dlg.querySelector('#phase-text')!.textContent = texts[+b.dataset.phase!];
+    }));
+</script>
+
+<style>
+  dialog { border: 0; padding: 0; background: none; max-width: 100vw; margin: auto; }
+  dialog::backdrop { background: rgba(8, 10, 16, 0.7); backdrop-filter: blur(4px); }
+  /* Light, Lightning-esque palette, deliberately separate from the dark site */
+  .sf { --blue: #0176d3; --bd: #dddbda; --tx: #181818; --mu: #5c5c5c;
+    width: min(680px, 94vw); max-height: 90vh; overflow: auto; background: #fff; color: var(--tx);
+    border-radius: 0.5rem; font-size: 0.9rem; font-family: ui-sans-serif, system-ui, sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .sf-head { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--bd); background: #f3f3f3; border-radius: 0.5rem 0.5rem 0 0; }
+  h4 { font-size: 1.1rem; font-weight: 600; }
+  .x { background: none; border: 0; font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--mu); }
+  .body { padding: 1.2rem; }
+  .body[hidden], [hidden] { display: none !important; }
+  .hint { color: var(--mu); font-size: 0.82rem; margin: 0.6rem 0 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; }
+  th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mu); background: #fafaf9; }
+  th, td { padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--bd); }
+  .r { text-align: right; }
+  td input[type='number'] { width: 4.2rem; padding: 0.3rem 0.4rem; border: 1px solid #c9c7c5; border-radius: 4px; font: inherit; }
+  td input:focus { outline: 2px solid var(--blue); outline-offset: 0; }
+  .link { color: var(--blue); }
+  .status { color: var(--mu); }
+  .status.done { color: #2e844a; font-weight: 600; }
+  .actions { margin-top: 1rem; display: flex; align-items: center; gap: 0.8rem; }
+  .toast { color: #2e844a; font-weight: 600; }
+  .btn { font: inherit; padding: 0.45rem 1rem; border-radius: 4px; border: 1px solid var(--bd); background: #fff; color: var(--blue); cursor: pointer; }
+  .btn.brand { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .seg { display: inline-flex; border: 1px solid var(--blue); border-radius: 4px; overflow: hidden; }
+  .seg button { font: inherit; padding: 0.35rem 1rem; border: 0; background: #fff; color: var(--blue); cursor: pointer; }
+  .seg button[aria-pressed='true'] { background: var(--blue); color: #fff; }
+  .steps { margin: 1rem 0 0; padding-left: 1.3rem; display: grid; gap: 0.5rem; }
+  .steps li::marker { color: var(--mu); }
+  .handoff { color: #ba0517; }
+  .tag { margin-left: 0.5rem; font-size: 0.72rem; background: #fde9e7; color: #ba0517; padding: 0.05rem 0.5rem; border-radius: 999px; }
+  .path { list-style: none; padding: 0; margin: 0; display: flex; }
+  .path li { flex: 1; }
+  .path button { width: 100%; font: inherit; padding: 0.6rem 0.4rem; border: 0; background: #ecebea; color: var(--tx); cursor: pointer; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%); }
+  .path li:first-child button { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); }
+  .path button[aria-selected='true'] { background: var(--blue); color: #fff; }
+  .phase { margin-top: 1.2rem; padding: 0.9rem 1rem; background: #f3f3f3; border-radius: 4px; }
+  .sf-foot { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.2rem; border-top: 1px solid var(--bd); background: #f3f3f3; border-radius: 0 0 0.5rem 0.5rem; }
+  .note { color: var(--mu); font-size: 0.78rem; }
+  @media (max-width: 520px) { th, td { padding: 0.4rem 0.3rem; font-size: 0.8rem; } td input[type='number'] { width: 3.2rem; } }
+</style>

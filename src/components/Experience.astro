@@ -1,5 +1,6 @@
 ---
 import { veloce } from '../data/experience';
+import SfModal from './SfModal.astro';
 const company = veloce;
 ---
 <section id="experience" class="exp">
@@ -37,7 +38,7 @@ const company = veloce;
                 <span class="hl-title">{h.title}</span>
                 <span class="plus" aria-hidden="true">+</span>
               </button>
-              <div class="hl-detail"><p>{h.detail}</p></div>
+              <div class="hl-detail"><div class="inner"><p>{h.detail}</p>{h.demo && <button class="demo-btn" data-demo={h.demo}>Open demo ▸</button>}</div></div>
             </li>
           ))}
         </ul>
@@ -45,6 +46,7 @@ const company = veloce;
     ))}
   </div>
 </section>
+<SfModal />
 
 <script>
   const root = document.querySelector<HTMLElement>('#experience')!;
@@ -114,7 +116,10 @@ const company = veloce;
   .hl.open .plus { transform: rotate(45deg); }
   .hl-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
   .hl.open .hl-detail { grid-template-rows: 1fr; }
-  .hl-detail > p { overflow: hidden; color: var(--muted); padding: 0 1rem; }
-  .hl.open .hl-detail > p { padding-bottom: 1rem; }
+  .hl-detail > .inner { overflow: hidden; padding: 0 1rem; }
+  .hl-detail p { color: var(--muted); }
+  .hl.open .hl-detail > .inner { padding-bottom: 1rem; }
+  .demo-btn { margin-top: 0.7rem; font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--accent); border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; }
+  .demo-btn:hover { background: var(--accent); color: #0b0d12; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
