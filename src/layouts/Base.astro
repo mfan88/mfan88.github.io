@@ -1,0 +1,48 @@
+---
+interface Props { title: string; description?: string }
+const { title, description = 'Portfolio of Marcus Fan' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="glow g1"></div>
+    <div class="glow g2"></div>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #0b0d12;
+    --fg: #e8ebf3;
+    --muted: #8b93a7;
+    --accent: #7c9cff;
+    --accent2: #c58bff;
+    --line: rgba(255, 255, 255, 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .glow {
+    position: fixed; z-index: -1; border-radius: 50%;
+    filter: blur(120px); opacity: 0.35; pointer-events: none;
+  }
+  .g1 { width: 520px; height: 520px; background: var(--accent); top: -160px; left: -120px; animation: drift 18s ease-in-out infinite alternate; }
+  .g2 { width: 440px; height: 440px; background: var(--accent2); bottom: -140px; right: -100px; animation: drift 22s ease-in-out infinite alternate-reverse; }
+  @keyframes drift { to { transform: translate(60px, 40px) scale(1.1); } }
+  @media (prefers-reduced-motion: reduce) { .glow { animation: none; } html { scroll-behavior: auto; } }
+</style>
