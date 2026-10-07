@@ -48,8 +48,8 @@ export const veloce: Company = {
           demo: 'speed',
         },
         {
-          title: 'Clearer error handling',
-          detail: 'Enhanced error handling so users see what went wrong and how to fix it, avoiding confusion and reducing support handoffs.',
+          title: 'Stack traces → plain-language errors',
+          detail: 'Turned raw stack-trace error banners into clear, plain-language messages that say what went wrong and how to fix it, so users aren\u2019t left confused.',
           skills: ['Salesforce', 'Error handling'],
           demo: 'errors',
         },

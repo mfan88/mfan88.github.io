@@ -91,8 +91,8 @@
       timed: true,
     },
     errors: {
-      task: `Enter a 40% discount on any line, then press Save.`,
-      hint: 'Notice what the user is told, and whether they would know how to fix it.',
+      task: 'Enter a 40% discount on any line, then press Save.',
+      hint: 'Before: a raw stack trace. After: a plain-language message that says what went wrong and how to fix it.',
       modes: ['Before', 'After'],
       timed: false,
     },
@@ -118,12 +118,29 @@
   const bulkOn = () => tab === 'bulk' && mode.bulk === 1;
   const friendly = () => tab !== 'errors' || mode.errors === 1;
 
+  // Fictional stack trace, shown in the "before" state of the error-handling demo.
+  const STACK_TRACE = `System.DmlException: Update failed. First exception on row 0 with id a0X5g00000AbCdEAAV; first error: FIELD_CUSTOM_VALIDATION_EXCEPTION, Validation error: [SBQQ__Discount__c]
+Class.QuoteLineEditorController.saveLines: line 142, column 1
+Class.QuoteLineEditorController.handleSave: line 87, column 1
+AuraHandledException: Script-thrown exception`;
+
+  function renderBanner() {
+    if (!friendly()) {
+      banner.className = 'banner trace';
+      banner.textContent = STACK_TRACE;
+      return;
+    }
+    banner.className = 'banner plain';
+    const items = Object.entries(errors).map(([i, msg]) => `<li><b>${lines[+i].name}:</b> ${msg}</li>`).join('');
+    banner.innerHTML = `<div class="b-title">We couldn’t save this quote</div><ul>${items}</ul>`;
+  }
+
   // ---- build rows once ----
   INITIAL.forEach((_, i) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="sel"><input type="checkbox" data-i="${i}" aria-label="Select line ${i + 1}" /></td>
-      <td><div class="pname"></div><div class="msg" hidden></div></td>
+      <td><div class="pname"></div></td>
       <td><input type="number" data-f="qty" data-i="${i}" aria-label="Quantity" /></td>
       <td class="list"></td>
       <td><input type="number" data-f="disc" data-i="${i}" aria-label="Discount percent" /></td>
@@ -139,7 +156,7 @@
     if (!Number.isFinite(l.qty) || l.qty < 1) msg = 'Quantity must be at least 1.';
     else if (l.disc < 0) msg = 'Discount can’t be negative.';
     else if (l.disc > MAX_DISC)
-      msg = `Discount of ${l.disc}% exceeds the ${MAX_DISC}% limit without approval. Enter ${MAX_DISC}% or less.`;
+      msg = `Discount of ${l.disc}% exceeds the ${MAX_DISC}% limit without approval. Enter ${MAX_DISC}% or less to continue.`;
     if (msg) errors[i] = msg; else delete errors[i];
   }
 
@@ -157,12 +174,6 @@
       const net = (l.qty || 0) * l.price * (1 - (l.disc || 0) / 100);
       total += net;
       tr.querySelector('.net')!.textContent = busy ? '…' : money(net);
-      const show = friendly() && !!errors[i];
-      q.classList.toggle('bad', show && /Quantity/.test(errors[i]));
-      d.classList.toggle('bad', show && !/Quantity/.test(errors[i]));
-      const m = tr.querySelector<HTMLElement>('.msg')!;
-      m.hidden = !show;
-      m.textContent = show ? errors[i] : '';
       tr.querySelector<HTMLInputElement>('.sel input')!.checked = selected.has(i);
     });
     $('#total').textContent = busy ? '…' : money(total);
@@ -171,11 +182,9 @@
     bulkbar.hidden = !bulkOn();
     $('#sel-count').textContent = String(selected.size);
     selAll.checked = selected.size === lines.length;
-    const nErr = Object.keys(errors).length;
-    const block = friendly() && nErr > 0;
-    saveBtn.disabled = busy || block;
-    saveBtn.textContent = busy ? 'Working…' : block ? `Fix ${nErr} issue${nErr > 1 ? 's' : ''} to save` : 'Save';
-    banner.hidden = !(bannerShown && !friendly() && nErr > 0);
+    saveBtn.disabled = busy;
+    saveBtn.textContent = busy ? 'Working…' : 'Save';
+    banner.hidden = !(bannerShown && Object.keys(errors).length > 0);
   }
 
   function renderStats() {
@@ -292,7 +301,7 @@
   saveBtn.addEventListener('click', () => {
     startTimer();
     actions++; renderStats();
-    if (Object.keys(errors).length) { bannerShown = true; banner.textContent = 'An error occurred. Please contact your administrator.'; refresh(); return; }
+    if (Object.keys(errors).length) { bannerShown = true; renderBanner(); refresh(); return; }
     runBusy(lag(), () => {
       saved = true;
       const t = $('#toast'); t.textContent = '✓ Quote saved'; t.hidden = false;
@@ -338,7 +347,11 @@
   #sf-modal .seg { display: inline-flex; border: 1px solid var(--blue); border-radius: 4px; overflow: hidden; }
   #sf-modal .seg button { font: inherit; padding: 0.35rem 0.9rem; border: 0; background: #fff; color: var(--blue); cursor: pointer; }
   #sf-modal .seg button[aria-pressed='true'] { background: var(--blue); color: #fff; }
-  #sf-modal .banner { margin: 0.8rem 1.2rem 0; padding: 0.7rem 1rem; background: #fde9e7; color: var(--red); border: 1px solid #f5b5ae; border-radius: 4px; font-weight: 600; }
+  #sf-modal .banner { margin: 0.8rem 1.2rem 0; padding: 0.7rem 1rem; border-radius: 4px; }
+  #sf-modal .banner.trace { background: #fde9e7; color: var(--red); border: 1px solid #f5b5ae; font-family: ui-monospace, monospace; font-size: 0.72rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  #sf-modal .banner.plain { background: #fff; color: var(--tx); border: 1px solid #f5b5ae; border-left: 4px solid var(--red); }
+  #sf-modal .banner .b-title { font-weight: 700; color: var(--red); margin-bottom: 0.3rem; }
+  #sf-modal .banner ul { margin: 0; padding-left: 1.1rem; }
   #sf-modal .bulkbar { margin: 0.8rem 1.2rem 0; padding: 0.6rem 1rem; background: #e1f0fc; border-radius: 4px; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
   #sf-modal .bulkbar input { width: 4rem; padding: 0.3rem 0.4rem; border: 1px solid #c9c7c5; border-radius: 4px; font: inherit; }
   #sf-modal .tbl-wrap { padding: 0.6rem 1.2rem; overflow-x: auto; }
@@ -350,8 +363,6 @@
   #sf-modal table.busy { opacity: 0.6; }
   #sf-modal td input[type='number'] { width: 4.2rem; padding: 0.3rem 0.4rem; border: 1px solid #c9c7c5; border-radius: 4px; font: inherit; }
   #sf-modal td input:focus { outline: 2px solid var(--blue); outline-offset: 0; }
-  #sf-modal td input.bad { border-color: var(--red); background: #fef5f4; }
-  #sf-modal .msg { color: var(--red); font-size: 0.78rem; margin-top: 0.2rem; max-width: 22ch; }
   #sf-modal .savebar { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 1.2rem 1rem; flex-wrap: wrap; gap: 0.6rem; }
   #sf-modal .save-right { display: flex; align-items: center; gap: 0.8rem; }
   #sf-modal .toast { color: var(--green); font-weight: 600; }
