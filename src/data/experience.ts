@@ -1,10 +1,10 @@
-// Edit this file to update the Experience section. Everything below is PLACEHOLDER
-// content until real details are filled in from LinkedIn.
+// Edit this file to update the Experience section.
+export type DemoKey = 'bulk' | 'speed' | 'errors' | 'gma';
 export interface Highlight {
   title: string;       // short, scannable headline
   detail: string;      // one or two sentences shown when expanded
   skills: string[];    // must match entries in `skills` of the role
-  demo?: 'bulk' | 'speed' | 'errors'; // opens the Quote Editor demo on this tab
+  demo?: DemoKey;      // which interactive demo/tab this highlight opens
 }
 export interface Role {
   title: string;
@@ -17,11 +17,13 @@ export interface Role {
 export interface Company {
   name: string;
   location?: string;
+  demo?: DemoKey;      // opened by the company's "Launch interactive demo" button
   roles: Role[];
 }
 
 export const veloce: Company = {
   name: 'Veloce',
+  demo: 'bulk',
   roles: [
     {
       title: 'Software Engineer',
@@ -62,3 +64,51 @@ export const veloce: Company = {
     },
   ],
 };
+
+export const gma: Company = {
+  name: 'GMA Upload Portal',
+  location: 'with the Developmental Disabilities Association',
+  demo: 'gma',
+  roles: [
+    {
+      title: 'Developer',
+      type: 'Project',
+      period: 'Summer 2026',
+      summary: 'Designed and built a secure web portal that takes a family\u2019s assessment video from one private link all the way to the clinic\u2019s files and spreadsheet, for the Vancouver Infant Development Program.',
+      skills: ['Next.js', 'Microsoft 365', 'Automation', 'Security', 'UX'],
+      highlights: [
+        {
+          title: 'One private link does the whole job',
+          detail: 'Staff pick a child and generate a single-use, time-limited link. The family opens it on their phone or computer, with no account to create, and uploads one video. Staff never have to touch the file.',
+          skills: ['Security', 'UX'],
+          demo: 'gma',
+        },
+        {
+          title: 'Annotation happens automatically',
+          detail: 'Each file is named from the child\u2019s details, the date recorded and the child\u2019s age in weeks (calculated from the due date), so it arrives labelled and searchable with nothing typed by staff.',
+          skills: ['Automation'],
+          demo: 'gma',
+        },
+        {
+          title: 'Excel tracking updates itself',
+          detail: 'The clinic\u2019s own workbook drives the child picker. After an upload, the portal stamps the \u201cvideo received\u201d date and moves the child\u2019s row to the done sheet, so data entry is already finished.',
+          skills: ['Microsoft 365', 'Automation'],
+          demo: 'gma',
+        },
+        {
+          title: 'Lands in the clinic\u2019s own storage, with a heads-up',
+          detail: 'Large videos (up to 4 GB) upload in chunks straight into the clinic\u2019s OneDrive/SharePoint. Staff get an email with a direct link the moment a video arrives.',
+          skills: ['Microsoft 365', 'Next.js'],
+          demo: 'gma',
+        },
+        {
+          title: 'Admin console built for non-developers',
+          detail: 'A staff console, restricted to approved Microsoft work accounts, lets admins create or schedule links, track their status, manage who is notified and adjust timings, with built-in step-by-step guides.',
+          skills: ['Security', 'UX', 'Next.js'],
+        },
+      ],
+    },
+  ],
+};
+
+export const companies: Company[] = [gma, veloce];

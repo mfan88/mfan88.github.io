@@ -1,0 +1,236 @@
+---
+// Interactive walkthrough of the GMA upload portal flow.
+// Fictional children, dates and addresses; illustrative only.
+---
+<dialog id="gma-modal" aria-labelledby="gma-title">
+  <div class="gm">
+    <header class="gm-head">
+      <h4 id="gma-title">GMA Upload Portal · walkthrough</h4>
+      <button class="x" aria-label="Close" data-close>×</button>
+    </header>
+
+    <div class="gm-body">
+      <!-- Step 1 -->
+      <section class="step active" id="s1">
+        <div class="step-title"><span class="num">1</span> Staff create a link <span class="who">Admin console</span></div>
+        <div class="row">
+          <label>Child
+            <select id="g-child"></select>
+          </label>
+          <button class="btn brand" id="g-gen">Generate link</button>
+        </div>
+        <div class="linkbox" id="g-linkbox" hidden>
+          <code id="g-link"></code>
+          <span class="chip" id="g-state">Provisioning…</span>
+        </div>
+        <p class="hint" id="g-hint1">Pick a child from the clinic’s workbook, then generate a private, single-use link to send to the family.</p>
+      </section>
+
+      <!-- Step 2 -->
+      <section class="step" id="s2">
+        <div class="step-title"><span class="num">2</span> A parent uploads <span class="who">Parent’s phone, no account</span></div>
+        <div class="row">
+          <label>Date video was recorded
+            <input type="date" id="g-date" />
+          </label>
+          <button class="btn brand" id="g-upload" disabled>Add video</button>
+        </div>
+        <div class="bar" id="g-barwrap" hidden><div id="g-bar"></div></div>
+        <p class="hint" id="g-hint2">The link must be active first. That’s all the parent does: one date, one video.</p>
+      </section>
+
+      <!-- Step 3 -->
+      <section class="step" id="s3">
+        <div class="step-title"><span class="num">3</span> Everything else happens automatically <span class="who">Behind the scenes</span></div>
+        <ul class="checks" id="g-checks">
+          <li data-k="file"><span class="tick"></span><div>Saved to the clinic’s OneDrive as<br /><code id="g-filename"></code></div></li>
+          <li data-k="stamp"><span class="tick"></span><div>Workbook: “video received” date stamped on the child’s row</div></li>
+          <li data-k="move"><span class="tick"></span><div>Workbook: row moved to “GMA done or not received”</div></li>
+          <li data-k="mail"><span class="tick"></span><div>Staff notified by email with a direct link to the file</div></li>
+        </ul>
+        <div class="sheets" id="g-sheets" hidden>
+          <div><div class="sheet-name">GMA-to send</div><table id="t-send"></table></div>
+          <div><div class="sheet-name">GMA done or not received</div><table id="t-done"></table></div>
+        </div>
+        <div class="mail" id="g-mail" hidden>
+          <div class="mail-sub" id="g-mail-sub"></div>
+          <div class="mail-body">A new video has been uploaded. <span class="lnk">Open in OneDrive</span></div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="gm-foot">
+      <span class="note">Illustrative mockup · fictional children and data</span>
+      <span><button class="btn" id="g-reset">Start over</button> <button class="btn" data-close>Close</button></span>
+    </footer>
+  </div>
+</dialog>
+
+<script>
+  const CHILDREN = [
+    { name: 'Alex Sample', edc: '2026-03-02' },
+    { name: 'Jordan Example', edc: '2026-03-19' },
+    { name: 'Riley Demo', edc: '2026-04-05' },
+  ];
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const dlg = $<HTMLDialogElement>('#gma-modal');
+  const sel = $<HTMLSelectElement>('#g-child'), gen = $<HTMLButtonElement>('#g-gen');
+  const upBtn = $<HTMLButtonElement>('#g-upload'), dateEl = $<HTMLInputElement>('#g-date');
+  const timers: number[] = [];
+  const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms));
+  const today = new Date().toISOString().slice(0, 10);
+
+  CHILDREN.forEach((c, i) => sel.add(new Option(c.name, String(i))));
+
+  const addDays = (iso: string, n: number) => {
+    const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
+  };
+  const weeks = (edc: string, rec: string) =>
+    Math.floor((Date.parse(rec + 'T00:00:00Z') - Date.parse(edc + 'T00:00:00Z')) / (7 * 86400000));
+  const ddmmyyyy = (iso: string) => iso.split('-').reverse().join('.');
+
+  function sheetTable(el: HTMLElement, rows: { name: string; edc: string; rec: string; hl?: boolean }[]) {
+    el.innerHTML = '<tr><th>Child Name</th><th>EDC</th><th>Video received</th></tr>' +
+      (rows.length ? rows.map((r) => `<tr class="${r.hl ? 'hl' : ''}"><td>${r.name}</td><td>${r.edc}</td><td class="${r.rec ? 'stamped' : ''}">${r.rec}</td></tr>`).join('')
+                   : '<tr><td colspan="3" class="empty">(empty)</td></tr>');
+  }
+  function renderSheets(stage: 0 | 1 | 2) {
+    const idx = +sel.value;
+    const send = CHILDREN.map((c, i) => ({ name: c.name, edc: c.edc, rec: i === idx && stage === 1 ? today : '', hl: i === idx && stage === 1 }))
+      .filter((_, i) => !(i === idx && stage === 2));
+    const done = stage === 2 ? [{ name: CHILDREN[idx].name, edc: CHILDREN[idx].edc, rec: today, hl: true }] : [];
+    sheetTable($('#t-send'), send);
+    sheetTable($('#t-done'), done);
+  }
+
+  function setStep(n: 1 | 2 | 3) {
+    [1, 2, 3].forEach((i) => $('#s' + i).classList.toggle('active', i === n));
+    [1, 2, 3].forEach((i) => $('#s' + i).classList.toggle('done', i < n));
+  }
+
+  function reset() {
+    timers.splice(0).forEach(clearTimeout);
+    sel.disabled = false; sel.selectedIndex = 0;
+    gen.disabled = false; gen.textContent = 'Generate link';
+    $('#g-linkbox').hidden = true;
+    $('#g-hint1').hidden = false;
+    upBtn.disabled = true; upBtn.textContent = 'Add video'; dateEl.disabled = false;
+    $('#g-barwrap').hidden = true; ($('#g-bar') as HTMLElement).style.width = '0%';
+    $('#g-hint2').textContent = 'The link must be active first. That’s all the parent does: one date, one video.';
+    $('#g-sheets').hidden = true; $('#g-mail').hidden = true;
+    dlg.querySelectorAll('#g-checks li').forEach((li) => li.classList.remove('on'));
+    $('#g-filename').textContent = '…';
+    dateEl.value = addDays(CHILDREN[0].edc, 10 * 7 + 3);
+    setStep(1);
+  }
+
+  sel.addEventListener('change', () => { dateEl.value = addDays(CHILDREN[+sel.value].edc, 10 * 7 + 3); });
+
+  gen.addEventListener('click', () => {
+    sel.disabled = true; gen.disabled = true; gen.textContent = 'Link created';
+    const token = [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join('');
+    $('#g-link').textContent = `upload.example.org/link/${token}`;
+    $('#g-linkbox').hidden = false; $('#g-hint1').hidden = true;
+    const chip = $('#g-state'); chip.className = 'chip prov'; chip.textContent = 'Provisioning…';
+    later(() => {
+      chip.className = 'chip pend'; chip.textContent = 'Pending · ready for upload';
+      setStep(2); upBtn.disabled = false;
+      $('#g-hint2').textContent = 'The link is now active. Choose a date and add a video (simulated).';
+    }, 1300);
+  });
+
+  upBtn.addEventListener('click', () => {
+    if (!dateEl.value) { $('#g-hint2').textContent = 'Please choose the date the video was recorded.'; return; }
+    upBtn.disabled = true; dateEl.disabled = true; upBtn.textContent = 'Uploading…';
+    $('#g-barwrap').hidden = false;
+    const bar = $('#g-bar') as HTMLElement;
+    let pct = 0;
+    const iv = window.setInterval(() => {
+      pct = Math.min(100, pct + 8 + Math.random() * 10);
+      bar.style.width = pct + '%';
+      $('#g-hint2').textContent = `Uploading video… ${Math.round(pct)}%`;
+      if (pct >= 100) { clearInterval(iv); finish(); }
+    }, 150);
+    timers.push(iv);
+  });
+
+  function finish() {
+    upBtn.textContent = 'Uploaded ✓';
+    $('#g-hint2').textContent = 'Thank you! The link is now used and can’t be opened again.';
+    const state = $('#g-state'); state.className = 'chip used'; state.textContent = 'Used';
+    const c = CHILDREN[+sel.value];
+    const rec = dateEl.value;
+    $('#g-filename').textContent = `GMA Video ${c.name} ${ddmmyyyy(rec)}_${weeks(c.edc, rec)}.mp4`;
+    $('#g-mail-sub').textContent = `${c.name}’s parent has uploaded a new video to your OneDrive`;
+    setStep(3);
+    const on = (k: string) => dlg.querySelector(`#g-checks [data-k=${k}]`)!.classList.add('on');
+    renderSheets(0); $('#g-sheets').hidden = false;
+    later(() => on('file'), 300);
+    later(() => { renderSheets(1); on('stamp'); }, 1100);
+    later(() => { renderSheets(2); on('move'); }, 2200);
+    later(() => { on('mail'); $('#g-mail').hidden = false; }, 3000);
+  }
+
+  $('#g-reset').addEventListener('click', reset);
+  document.querySelectorAll<HTMLElement>('.demo-btn[data-demo="gma"]').forEach((b) =>
+    b.addEventListener('click', () => { reset(); dlg.showModal(); }));
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => timers.splice(0).forEach(clearTimeout));
+  reset();
+</script>
+
+<style is:global>
+  #gma-modal { border: 0; padding: 0; background: none; max-width: 100vw; margin: auto; }
+  #gma-modal::backdrop { background: rgba(8, 10, 16, 0.7); backdrop-filter: blur(4px); }
+  #gma-modal [hidden] { display: none !important; }
+  #gma-modal .gm { --blue: #0b6bcb; --bd: #dddbda; --tx: #181818; --mu: #5c5c5c; --green: #2e844a; --amber: #b45f06;
+    width: min(760px, 95vw); max-height: 92vh; overflow: auto; background: #fff; color: var(--tx);
+    border-radius: 0.5rem; font-size: 0.9rem; font-family: ui-sans-serif, system-ui, sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  #gma-modal .gm-head { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--bd); background: #f3f3f3; border-radius: 0.5rem 0.5rem 0 0; }
+  #gma-modal h4 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+  #gma-modal .x { background: none; border: 0; font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--mu); }
+  #gma-modal .gm-body { padding: 1rem 1.2rem; display: grid; gap: 0.8rem; }
+  #gma-modal .step { border: 1px solid var(--bd); border-radius: 8px; padding: 0.9rem 1rem; opacity: 0.45; transition: opacity 0.3s, border-color 0.3s; }
+  #gma-modal .step.active { opacity: 1; border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+  #gma-modal .step.done { opacity: 0.85; }
+  #gma-modal .step-title { font-weight: 600; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  #gma-modal .num { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--blue); color: #fff; font-size: 0.85rem; }
+  #gma-modal .who { margin-left: auto; font-weight: 400; font-size: 0.78rem; color: var(--mu); background: #f3f3f3; border-radius: 999px; padding: 0.1rem 0.7rem; }
+  #gma-modal .row { display: flex; gap: 0.8rem; align-items: flex-end; flex-wrap: wrap; }
+  #gma-modal label { display: grid; gap: 0.25rem; font-size: 0.78rem; color: var(--mu); }
+  #gma-modal select, #gma-modal input[type='date'] { font: inherit; color: var(--tx); padding: 0.4rem 0.5rem; border: 1px solid #c9c7c5; border-radius: 4px; background: #fff; }
+  #gma-modal .btn { font: inherit; padding: 0.45rem 1rem; border-radius: 4px; border: 1px solid var(--bd); background: #fff; color: var(--blue); cursor: pointer; }
+  #gma-modal .btn.brand { background: var(--blue); color: #fff; border-color: var(--blue); }
+  #gma-modal .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  #gma-modal .hint { color: var(--mu); font-size: 0.82rem; margin: 0.6rem 0 0; }
+  #gma-modal .linkbox { margin-top: 0.7rem; display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; background: #f3f3f3; padding: 0.5rem 0.8rem; border-radius: 6px; }
+  #gma-modal code { font-family: ui-monospace, monospace; font-size: 0.82rem; word-break: break-all; }
+  #gma-modal .chip { font-size: 0.75rem; border-radius: 999px; padding: 0.15rem 0.7rem; font-weight: 600; }
+  #gma-modal .chip.prov { background: #fff3e0; color: var(--amber); }
+  #gma-modal .chip.pend { background: #e1f0fc; color: #014486; }
+  #gma-modal .chip.used { background: #e6f4ea; color: var(--green); }
+  #gma-modal .bar { margin-top: 0.7rem; height: 8px; background: #ecebea; border-radius: 99px; overflow: hidden; }
+  #gma-modal .bar > div { height: 100%; width: 0; background: var(--blue); transition: width 0.15s; }
+  #gma-modal .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+  #gma-modal .checks li { display: flex; gap: 0.7rem; align-items: flex-start; opacity: 0.4; transition: opacity 0.3s; }
+  #gma-modal .checks li.on { opacity: 1; }
+  #gma-modal .tick { flex: none; width: 1.2rem; height: 1.2rem; border-radius: 50%; border: 2px solid #c9c7c5; margin-top: 0.1rem; }
+  #gma-modal .checks li.on .tick { background: var(--green); border-color: var(--green); position: relative; }
+  #gma-modal .checks li.on .tick::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 0.75rem; }
+  #gma-modal .sheets { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 0.9rem; }
+  #gma-modal .sheet-name { font-size: 0.75rem; font-weight: 600; color: #107c41; margin-bottom: 0.25rem; }
+  #gma-modal table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  #gma-modal th { text-align: left; background: #e8f3ec; font-weight: 600; }
+  #gma-modal th, #gma-modal td { border: 1px solid var(--bd); padding: 0.25rem 0.4rem; }
+  #gma-modal tr.hl td { background: #fff8d6; }
+  #gma-modal td.stamped { color: var(--green); font-weight: 600; }
+  #gma-modal td.empty { color: var(--mu); text-align: center; }
+  #gma-modal .mail { margin-top: 0.9rem; border: 1px solid var(--bd); border-radius: 6px; overflow: hidden; }
+  #gma-modal .mail-sub { background: #f3f3f3; padding: 0.5rem 0.8rem; font-weight: 600; }
+  #gma-modal .mail-body { padding: 0.6rem 0.8rem; }
+  #gma-modal .lnk { color: var(--blue); text-decoration: underline; }
+  #gma-modal .gm-foot { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.2rem; border-top: 1px solid var(--bd); background: #f3f3f3; border-radius: 0 0 0.5rem 0.5rem; gap: 1rem; flex-wrap: wrap; }
+  #gma-modal .note { color: var(--mu); font-size: 0.78rem; }
+  @media (max-width: 560px) { #gma-modal .sheets { grid-template-columns: 1fr; } #gma-modal .who { margin-left: 0; } }
+</style>

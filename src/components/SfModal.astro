@@ -313,7 +313,7 @@ AuraHandledException: Script-thrown exception`;
     setTab((name in TABS ? name : 'bulk') as TabKey);
     dlg.showModal();
   }
-  document.querySelectorAll<HTMLElement>('.demo-btn').forEach((b) => b.addEventListener('click', () => open(b.dataset.demo!)));
+  document.querySelectorAll<HTMLElement>('.demo-btn:not([data-demo="gma"])').forEach((b) => b.addEventListener('click', () => open(b.dataset.demo!)));
   dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   dlg.addEventListener('close', () => clearInterval(tick));

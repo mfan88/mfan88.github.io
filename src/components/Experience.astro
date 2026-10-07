@@ -1,15 +1,16 @@
 ---
-import { veloce } from '../data/experience';
+import { companies } from '../data/experience';
 import SfModal from './SfModal.astro';
-const company = veloce;
+import GmaDemo from './GmaDemo.astro';
 ---
 <section id="experience" class="exp">
   <h2>Experience</h2>
+  {companies.map((company) => (
   <div class="company">
     <div class="company-head">
       <h3>{company.name}</h3>
       {company.location && <span class="muted">{company.location}</span>}
-      <button class="demo-btn launch" data-demo="bulk">▶ Launch interactive demo</button>
+      {company.demo && <button class="demo-btn launch" data-demo={company.demo}>▶ Launch interactive demo</button>}
     </div>
 
     {company.roles.length > 1 && (
@@ -46,45 +47,47 @@ const company = veloce;
       </div>
     ))}
   </div>
+  ))}
 </section>
 <SfModal />
+<GmaDemo />
 
 <script>
-  const root = document.querySelector<HTMLElement>('#experience')!;
-
-  // Role tabs
-  root.querySelectorAll<HTMLButtonElement>('.role-tabs button').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      root.querySelectorAll('.role-tabs button').forEach((t) => t.classList.toggle('active', t === tab));
-      root.querySelectorAll<HTMLElement>('[data-role-panel]').forEach((p) => {
-        p.hidden = p.dataset.rolePanel !== tab.dataset.role;
+  document.querySelectorAll<HTMLElement>('#experience .company').forEach((co) => {
+    // Role tabs
+    co.querySelectorAll<HTMLButtonElement>('.role-tabs button').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        co.querySelectorAll('.role-tabs button').forEach((t) => t.classList.toggle('active', t === tab));
+        co.querySelectorAll<HTMLElement>('[data-role-panel]').forEach((p) => {
+          p.hidden = p.dataset.rolePanel !== tab.dataset.role;
+        });
       });
     });
-  });
 
-  // Expand / collapse highlights
-  root.querySelectorAll<HTMLButtonElement>('.hl-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!open));
-      btn.closest('.hl')!.classList.toggle('open', !open);
+    // Expand / collapse highlights
+    co.querySelectorAll<HTMLButtonElement>('.hl-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        btn.closest('.hl')!.classList.toggle('open', !open);
+      });
     });
-  });
 
-  // Skill chips: highlight matching items, dim the rest
-  root.querySelectorAll<HTMLElement>('.role').forEach((role) => {
-    const chips = role.querySelectorAll<HTMLButtonElement>('.chip');
-    const items = role.querySelectorAll<HTMLElement>('.hl');
-    chips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const wasOn = chip.getAttribute('aria-pressed') === 'true';
-        chips.forEach((c) => c.setAttribute('aria-pressed', 'false'));
-        const skill = wasOn ? null : chip.dataset.skill!;
-        if (skill) chip.setAttribute('aria-pressed', 'true');
-        items.forEach((li) => {
-          const match = !skill || li.dataset.skills!.split('|').includes(skill);
-          li.classList.toggle('dim', !match);
-          li.classList.toggle('match', !!skill && match);
+    // Skill chips: highlight matching items, dim the rest
+    co.querySelectorAll<HTMLElement>('.role').forEach((role) => {
+      const chips = role.querySelectorAll<HTMLButtonElement>('.chip');
+      const items = role.querySelectorAll<HTMLElement>('.hl');
+      chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const wasOn = chip.getAttribute('aria-pressed') === 'true';
+          chips.forEach((c) => c.setAttribute('aria-pressed', 'false'));
+          const skill = wasOn ? null : chip.dataset.skill!;
+          if (skill) chip.setAttribute('aria-pressed', 'true');
+          items.forEach((li) => {
+            const match = !skill || li.dataset.skills!.split('|').includes(skill);
+            li.classList.toggle('dim', !match);
+            li.classList.toggle('match', !!skill && match);
+          });
         });
       });
     });
@@ -93,6 +96,7 @@ const company = veloce;
 
 <style>
   .exp { scroll-margin-top: 4.5rem; padding: 4rem 0; border-top: 1px solid var(--line); }
+  .company + .company { margin-top: 1.5rem; }
   .company { border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.2rem, 3vw, 2rem); background: rgba(255,255,255,0.03); }
   .company-head { display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
   h3 { font-size: 1.5rem; }
