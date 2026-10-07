@@ -1,0 +1,111 @@
+---
+import { projects } from '../data/projects';
+import NavDemo from './NavDemo.astro';
+---
+<section id="projects" class="proj">
+  <h2>Projects</h2>
+  {projects.map((p) => (
+    <article class="card">
+      <div class="card-head">
+        {p.logo && <img src={p.logo} alt="" width="52" height="52" />}
+        <div class="titles">
+          <h3>{p.name}</h3>
+          <p class="tag">{p.tagline}</p>
+        </div>
+        <span class="status">{p.status}</span>
+      </div>
+      <p class="summary">{p.summary}</p>
+      <p class="built">{p.built}</p>
+      {p.demo && <button class="demo-btn launch" data-demo={p.demo}>▶ Launch interactive demo</button>}
+
+      <div class="chips" aria-label="Filter highlights by theme">
+        {p.skills.map((s) => <button class="chip" data-skill={s} aria-pressed="false">{s}</button>)}
+      </div>
+
+      {p.groups.map((g) => (
+        <div class="group">
+          <h4>{g.label}</h4>
+          <ul class="highlights">
+            {g.highlights.map((h) => (
+              <li class="hl" data-skills={h.skills.join('|')}>
+                <button class="hl-btn" aria-expanded="false">
+                  <span class="hl-title">{h.title}</span>
+                  <span class="plus" aria-hidden="true">+</span>
+                </button>
+                <div class="hl-detail"><div class="inner">
+                  <p>{h.detail}</p>
+                  {h.demo && <button class="demo-btn" data-demo={h.demo}>Open demo ▸</button>}
+                </div></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </article>
+  ))}
+</section>
+<NavDemo />
+
+<script>
+  document.querySelectorAll<HTMLElement>('#projects .card').forEach((card) => {
+    card.querySelectorAll<HTMLButtonElement>('.hl-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        btn.closest('.hl')!.classList.toggle('open', !open);
+      });
+    });
+    const chips = card.querySelectorAll<HTMLButtonElement>('.chip');
+    const items = card.querySelectorAll<HTMLElement>('.hl');
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const wasOn = chip.getAttribute('aria-pressed') === 'true';
+        chips.forEach((c) => c.setAttribute('aria-pressed', 'false'));
+        const skill = wasOn ? null : chip.dataset.skill!;
+        if (skill) chip.setAttribute('aria-pressed', 'true');
+        items.forEach((li) => {
+          const match = !skill || li.dataset.skills!.split('|').includes(skill);
+          li.classList.toggle('dim', !match);
+          li.classList.toggle('match', !!skill && match);
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .proj { scroll-margin-top: 4.5rem; padding: 4rem 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .card { border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.2rem, 3vw, 2rem); background: rgba(255,255,255,0.03); }
+  .card-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .card-head img { border-radius: 12px; }
+  .titles { flex: 1; min-width: 12rem; }
+  h3 { font-size: 1.5rem; line-height: 1.2; }
+  .tag { color: var(--accent); font-size: 0.95rem; }
+  .status { font-size: 0.78rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0.2rem 0.75rem; }
+  .summary { color: var(--muted); margin: 1rem 0 0.4rem; max-width: 62ch; }
+  .built { font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--muted); opacity: 0.8; margin-bottom: 0.9rem; }
+  .demo-btn { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--accent); border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; margin-top: 0.7rem; }
+  .demo-btn.launch { margin: 0 0 1.2rem; }
+  .demo-btn:hover { background: var(--accent); color: #0b0d12; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.4rem; }
+  .chip { font: inherit; font-size: 0.82rem; font-family: ui-monospace, monospace; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 0.25rem 0.75rem; cursor: pointer; transition: all 0.2s; }
+  .chip:hover { color: var(--fg); border-color: var(--accent); }
+  .chip[aria-pressed='true'] { background: var(--accent); color: #0b0d12; border-color: var(--accent); }
+  .group { margin-bottom: 1.4rem; }
+  h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.6rem; }
+  .highlights { list-style: none; padding: 0; display: grid; gap: 0.6rem; }
+  .hl { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: opacity 0.25s, border-color 0.25s, background 0.25s; }
+  .hl.dim { opacity: 0.3; }
+  .hl.match { border-color: var(--accent); background: rgba(124,156,255,0.07); }
+  .hl-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; padding: 0.9rem 1rem; cursor: pointer; }
+  .hl-btn:hover { background: rgba(255,255,255,0.04); }
+  .plus { color: var(--accent); font-size: 1.3rem; line-height: 1; transition: transform 0.25s; }
+  .hl.open .plus { transform: rotate(45deg); }
+  .hl-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
+  .hl.open .hl-detail { grid-template-rows: 1fr; }
+  .hl-detail > .inner { overflow: hidden; padding: 0 1rem; }
+  .hl-detail p { color: var(--muted); }
+  .hl.open .hl-detail > .inner { padding-bottom: 1rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>

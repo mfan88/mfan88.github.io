@@ -1,0 +1,306 @@
+---
+// Interactive NavigateMyDay mockup. Fictional events, places and codes; illustrative only.
+---
+<dialog id="nmd-modal" aria-labelledby="nmd-title">
+  <div class="nm">
+    <header class="nm-head">
+      <h4 id="nmd-title">NavigateMyDay · interactive demo</h4>
+      <button class="x" aria-label="Close" data-close>×</button>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="move">On the move</button>
+      <button role="tab" data-tab="care">Caregiver</button>
+      <button role="tab" data-tab="person">Person being helped</button>
+    </div>
+
+    <div class="stage">
+      <div class="phone-wrap">
+        <div class="phone"><div class="notch"></div><div class="screen" id="nm-screen"></div></div>
+      </div>
+      <aside class="side">
+        <p class="blurb" id="nm-blurb"></p>
+        <div id="nm-controls"></div>
+        <p class="live" id="nm-live" aria-live="polite"></p>
+      </aside>
+    </div>
+
+    <footer class="nm-foot">
+      <span class="note">Illustrative mockup · fictional events and places · it’s currently 1:05 PM</span>
+      <button class="btn" data-close>Close</button>
+    </footer>
+  </div>
+</dialog>
+
+<script>
+  type Tab = 'move' | 'care' | 'person';
+  type Surface = 'phone' | 'widget' | 'carplay' | 'siri';
+  interface Ev { title: string; time: number; place: string; addr: string; travel: number }
+
+  const NOW = 13 * 60 + 5;
+  const EVENTS: Ev[] = [
+    { title: 'Team stand-up', time: 9 * 60 + 30, place: 'Office', addr: '1 Main St', travel: 15 },
+    { title: 'Client meeting', time: 14 * 60 + 30, place: 'Harbour Office', addr: '88 Harbour St', travel: 38 },
+    { title: 'Pick up groceries', time: 17 * 60 + 30, place: 'Corner Market', addr: '12 Elm Ave', travel: 12 },
+  ];
+  const PLACES = ['Home', 'Clinic', 'Pharmacy'];
+  const CODE = 'K7M2-QX4P';
+
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const dlg = $<HTMLDialogElement>('#nmd-modal');
+  const screen = $('#nm-screen'), controls = $('#nm-controls'), live = $('#nm-live'), blurb = $('#nm-blurb');
+
+  let tab: Tab = 'move';
+  let surface: Surface = 'phone';
+  let maps = 'Apple Maps';
+  let include = [true, true, true];
+  let published = false;
+  let checkins: string[] = [];
+  let travel = EVENTS[1].travel;     // adjustable travel time for the client meeting
+  let toastTimer: number | undefined;
+
+  const fmt = (m: number) => {
+    const h = Math.floor(m / 60), mm = String(m % 60).padStart(2, '0');
+    return `${((h + 11) % 12) + 1}:${mm} ${h >= 12 ? 'PM' : 'AM'}`;
+  };
+  const inLabel = (m: number) => {
+    const d = m - NOW; if (d < 60) return `in ${d} min`;
+    const h = Math.floor(d / 60), r = d % 60; return r ? `in ${h} hr ${r} min` : `in ${h} hr`;
+  };
+  const evTravel = (e: Ev) => (e === EVENTS[1] ? travel : e.travel);
+  const leaveBy = (e: Ev) => e.time - evTravel(e);
+  const upcoming = (flags?: boolean[]) => EVENTS.filter((e, i) => e.time > NOW && (!flags || flags[i]));
+  const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
+
+  function toast(msg: string) {
+    live.textContent = msg; live.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = window.setTimeout(() => live.classList.remove('show'), 3500);
+  }
+
+  // ---------- phone content ----------
+  function phoneMove(): string {
+    const next = upcoming()[0], later = upcoming().slice(1);
+    return `<div class="app">
+      <div class="bar">Today</div>
+      <div class="next">
+        <div class="lbl">Next up · ${inLabel(next.time)}</div>
+        <div class="ttl">${next.title}</div>
+        <div class="sub">📍 ${next.place} · ${next.addr}</div>
+        <div class="leave">Leave by <b>${fmt(leaveBy(next))}</b> <span>· ${evTravel(next)} min</span></div>
+        <button class="go" data-act="navigate">Navigate ➜</button>
+      </div>
+      <div class="lbl pad">Later</div>
+      ${later.map((e) => `<div class="row"><span>${e.title}</span><span>${fmt(e.time)}</span></div>`).join('')}
+    </div>`;
+  }
+  function widget(): string {
+    const next = upcoming()[0];
+    return `<div class="home"><div class="wg"><div class="wl">Next up</div><div class="wt">${next.title}</div>
+      <div class="ws">${next.place}</div><div class="wleave">Leave by ${fmt(leaveBy(next))}</div></div>
+      <div class="hint">Home Screen widget</div></div>`;
+  }
+  function carplay(): string {
+    const next = upcoming()[0];
+    return `<div class="car"><div class="car-h">NavigateMyDay</div>
+      <button class="car-row" data-act="navigate"><b>Next event</b><span>${next.title} · ${next.addr}</span></button>
+      ${PLACES.map((p) => `<button class="car-row" data-act="navigate-place"><b>${p}</b><span>Saved place</span></button>`).join('')}
+      <div class="hint dark">CarPlay Driving Task</div></div>`;
+  }
+  function siri(): string {
+    const next = upcoming()[0];
+    return `<div class="siri"><div class="bub me">“Hey Siri, <b>Next stop</b>”</div>
+      <div class="bub sir">Starting directions to ${next.addr}</div>
+      <button class="go" data-act="navigate">Opens ${maps} ➜</button></div>`;
+  }
+  function phoneCare(): string {
+    return `<div class="app">
+      <div class="bar">Day sheet</div>
+      <div class="lbl pad">Group code <b>${CODE}</b></div>
+      ${EVENTS.map((e, i) => `<label class="row chk"><input type="checkbox" data-i="${i}" ${include[i] ? 'checked' : ''}/><span>${e.title}<small>${fmt(e.time)} · ${e.addr}</small></span></label>`).join('')}
+      <button class="go" data-act="publish">${published ? 'Re-publish day sheet' : 'Publish day sheet'}</button>
+      <div class="lbl pad">Recent check-ins</div>
+      ${checkins.length ? checkins.map((c) => `<div class="row"><span>✅ ${esc(c)}</span></div>`).join('') : '<div class="row dim"><span>None yet</span></div>'}
+    </div>`;
+  }
+  function phonePerson(): string {
+    if (!published) {
+      return `<div class="app big"><div class="bar">Today</div>
+        <div class="empty">Your caregiver has not published today’s day sheet yet.</div>
+        <div class="lbl pad">My places</div>
+        ${PLACES.map((p) => `<button class="place" data-act="navigate-place">${p}</button>`).join('')}</div>`;
+    }
+    const next = upcoming(include)[0];
+    return `<div class="app big"><div class="bar">Today</div>
+      ${next ? `<div class="next big">
+        <div class="lbl">Next up · ${inLabel(next.time)}</div>
+        <div class="ttl">${next.title}</div>
+        <div class="leave">Leave by <b>${fmt(leaveBy(next))}</b></div>
+        <button class="go huge" data-act="navigate">Take me there</button></div>`
+        : '<div class="empty">Nothing else planned today. Enjoy your day!</div>'}
+      <div class="lbl pad">My places</div>
+      ${PLACES.map((p) => `<button class="place" data-act="navigate-place">${p}</button>`).join('')}
+      <button class="checkin" data-act="checkin">👋 I’m OK, check in</button></div>`;
+  }
+
+  // ---------- render ----------
+  function renderPhone() {
+    let html = '';
+    if (tab === 'move') html = surface === 'phone' ? phoneMove() : surface === 'widget' ? widget() : surface === 'carplay' ? carplay() : siri();
+    else if (tab === 'care') html = phoneCare();
+    else html = phonePerson();
+    screen.innerHTML = html;
+    screen.className = 'screen ' + (tab === 'move' ? surface : 'phone');
+  }
+
+  function renderSide() {
+    dlg.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    if (tab === 'move') {
+      blurb.textContent = 'A busy professional’s day: the next event, when to leave, and directions in one tap. Try changing the travel time or where it shows up.';
+      controls.innerHTML = `
+        <label class="ctl">Travel time to the client meeting: <b id="tt">${travel} min</b>
+          <input type="range" id="travel" min="10" max="75" value="${travel}" /></label>
+        <div class="ctl">Maps app
+          <div class="seg">${['Apple Maps', 'Google Maps'].map((m) => `<button data-maps="${m}" aria-pressed="${maps === m}">${m}</button>`).join('')}</div></div>
+        <div class="ctl">Where to see it
+          <div class="seg wrap">${(['phone', 'widget', 'carplay', 'siri'] as Surface[]).map((s) => `<button data-surface="${s}" aria-pressed="${surface === s}">${{ phone: 'App', widget: 'Widget', carplay: 'CarPlay', siri: 'Siri' }[s]}</button>`).join('')}</div></div>`;
+      live.textContent = `Departure reminder set for ${fmt(leaveBy(upcoming()[0]))}.`; live.classList.add('show');
+    } else if (tab === 'care') {
+      blurb.textContent = 'A caregiver curates the day for someone they support: choose what to include, then publish the day sheet to their group (shared by code or QR).';
+      controls.innerHTML = `<p class="tip">Tick the events to include, press <b>Publish</b>, then switch to <b>Person being helped</b> to see what they get.</p>`;
+      live.textContent = published ? 'Day sheet is published.' : 'Nothing published yet.'; live.classList.add('show');
+    } else {
+      blurb.textContent = 'The person being helped sees only what matters: what’s next, when to leave, and one big button. Their places are curated for them.';
+      controls.innerHTML = `<p class="tip">${published ? 'Try <b>Take me there</b> or <b>check in</b>.' : 'Nothing is published yet. Switch to <b>Caregiver</b> and publish the day sheet first.'}</p>`;
+      live.classList.remove('show');
+    }
+    renderPhone();
+  }
+
+  function setTab(t: Tab) { tab = t; renderSide(); }
+
+  // ---------- events ----------
+  dlg.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab as Tab)));
+
+  controls.addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el.id === 'travel') {
+      travel = +el.value; $('#tt').textContent = travel + ' min';
+      live.textContent = `Departure reminder set for ${fmt(leaveBy(upcoming()[0]))}.`; live.classList.add('show');
+      renderPhone();
+    }
+  });
+  controls.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    const m = t.closest<HTMLElement>('[data-maps]'), s = t.closest<HTMLElement>('[data-surface]');
+    if (m) { maps = m.dataset.maps!; renderSide(); }
+    if (s) { surface = s.dataset.surface as Surface; renderSide(); }
+  });
+
+  screen.addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el.dataset.i !== undefined) { include[+el.dataset.i] = el.checked; }
+  });
+  screen.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'navigate') {
+      const next = (tab === 'person' ? upcoming(include) : upcoming())[0];
+      toast(`Opening ${maps} · directions to ${next.addr}`);
+    } else if (act === 'navigate-place') {
+      toast(`Opening ${maps} · directions to ${b.textContent!.trim().split('\n')[0].replace(/Saved place/, '')}`);
+    } else if (act === 'publish') {
+      published = true; renderPhone(); toast('Day sheet published. It now shows on their phone.');
+    } else if (act === 'checkin') {
+      checkins = [`Checked in at ${fmt(NOW + checkins.length)}`, ...checkins].slice(0, 3);
+      toast('Check-in sent to your caregiver.');
+    }
+  });
+
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  document.querySelectorAll<HTMLElement>('.demo-btn[data-demo="nmd"]').forEach((b) =>
+    b.addEventListener('click', () => {
+      published = false; checkins = []; include = [true, true, true]; travel = EVENTS[1].travel; surface = 'phone'; maps = 'Apple Maps';
+      setTab('move'); dlg.showModal();
+    }));
+  setTab('move');
+</script>
+
+<style is:global>
+  #nmd-modal { border: 0; padding: 0; background: none; max-width: 100vw; margin: auto; }
+  #nmd-modal::backdrop { background: rgba(8, 10, 16, 0.7); backdrop-filter: blur(4px); }
+  #nmd-modal [hidden] { display: none !important; }
+  #nmd-modal .nm { --forest: #1f3d2b; --moss: #5f8f6b; --cream: #f4f1ea; --ink: #0f1a13; --bd: #dcd8cd;
+    width: min(820px, 95vw); max-height: 92vh; overflow: auto; background: var(--cream); color: var(--ink);
+    border-radius: 0.6rem; font-size: 0.9rem; font-family: ui-sans-serif, system-ui, sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  #nmd-modal .nm-head { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.2rem; background: var(--forest); color: var(--cream); border-radius: 0.6rem 0.6rem 0 0; }
+  #nmd-modal h4 { font-size: 1.05rem; font-weight: 600; margin: 0; }
+  #nmd-modal .x { background: none; border: 0; font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--cream); }
+  #nmd-modal .tabs { display: flex; border-bottom: 1px solid var(--bd); padding: 0 0.6rem; overflow-x: auto; }
+  #nmd-modal .tabs button { font: inherit; background: none; border: 0; border-bottom: 3px solid transparent; padding: 0.7rem 1rem; color: #6a7a6f; cursor: pointer; white-space: nowrap; }
+  #nmd-modal .tabs button[aria-selected='true'] { color: var(--forest); border-bottom-color: var(--moss); font-weight: 700; }
+  #nmd-modal .stage { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; padding: 1.2rem; align-items: start; }
+  #nmd-modal .side { display: grid; gap: 0.9rem; }
+  #nmd-modal .blurb { margin: 0; line-height: 1.5; }
+  #nmd-modal .ctl { display: grid; gap: 0.35rem; font-size: 0.82rem; color: #3b4a40; }
+  #nmd-modal .ctl input[type='range'] { width: 100%; accent-color: var(--moss); }
+  #nmd-modal .tip { margin: 0; padding: 0.7rem 0.9rem; background: #e7efe6; border-radius: 8px; line-height: 1.5; }
+  #nmd-modal .seg { display: inline-flex; border: 1px solid var(--forest); border-radius: 6px; overflow: hidden; width: fit-content; }
+  #nmd-modal .seg.wrap { flex-wrap: wrap; }
+  #nmd-modal .seg button { font: inherit; padding: 0.35rem 0.8rem; border: 0; background: #fff; color: var(--forest); cursor: pointer; }
+  #nmd-modal .seg button[aria-pressed='true'] { background: var(--forest); color: var(--cream); }
+  #nmd-modal .live { margin: 0; font-weight: 600; color: var(--forest); min-height: 1.4em; opacity: 0; transition: opacity 0.25s; }
+  #nmd-modal .live.show { opacity: 1; }
+  #nmd-modal .nm-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 0.8rem 1.2rem; border-top: 1px solid var(--bd); }
+  #nmd-modal .note { color: #6a7a6f; font-size: 0.78rem; }
+  #nmd-modal .btn { font: inherit; padding: 0.45rem 1rem; border-radius: 6px; border: 1px solid var(--bd); background: #fff; color: var(--forest); cursor: pointer; }
+
+  /* phone */
+  #nmd-modal .phone { position: relative; width: 280px; margin: 0 auto; border: 8px solid #111; border-radius: 34px; background: #111; overflow: hidden; }
+  #nmd-modal .notch { position: absolute; top: 0; left: 50%; translate: -50% 0; width: 90px; height: 18px; background: #111; border-radius: 0 0 12px 12px; z-index: 2; }
+  #nmd-modal .screen { height: 500px; overflow-y: auto; background: #fff; border-radius: 26px; padding-top: 22px; }
+  #nmd-modal .screen.widget { background: linear-gradient(160deg, #cfe2d3, #8fb59a); }
+  #nmd-modal .screen.carplay { background: #121a15; }
+  #nmd-modal .screen.siri { background: radial-gradient(circle at 50% 100%, #3b6b4d, #0f1a13 70%); }
+  #nmd-modal .app .bar { background: var(--forest); color: var(--cream); font-weight: 700; padding: 0.7rem 1rem; }
+  #nmd-modal .app .next { margin: 0.8rem; padding: 0.9rem; border-radius: 14px; background: var(--cream); border: 1px solid var(--bd); display: grid; gap: 0.25rem; }
+  #nmd-modal .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6a7a6f; }
+  #nmd-modal .lbl.pad { padding: 0.6rem 1rem 0.2rem; }
+  #nmd-modal .ttl { font-size: 1.15rem; font-weight: 700; }
+  #nmd-modal .sub { font-size: 0.82rem; color: #3b4a40; }
+  #nmd-modal .leave { font-size: 0.9rem; margin-top: 0.2rem; }
+  #nmd-modal .leave b { color: var(--forest); }
+  #nmd-modal .leave span { color: #6a7a6f; }
+  #nmd-modal .go { margin-top: 0.5rem; font: inherit; font-weight: 700; padding: 0.6rem; border: 0; border-radius: 10px; background: var(--forest); color: var(--cream); cursor: pointer; }
+  #nmd-modal .app > .go { margin: 0.6rem 0.8rem; display: block; width: calc(100% - 1.6rem); }
+  #nmd-modal .go.huge { font-size: 1.15rem; padding: 0.95rem; }
+  #nmd-modal .row { display: flex; justify-content: space-between; gap: 0.6rem; padding: 0.55rem 1rem; border-top: 1px solid #eee; font-size: 0.85rem; }
+  #nmd-modal .row.dim { color: #8a948d; }
+  #nmd-modal .row.chk { align-items: center; justify-content: flex-start; gap: 0.7rem; cursor: pointer; }
+  #nmd-modal .row.chk small { display: block; color: #6a7a6f; font-size: 0.72rem; }
+  #nmd-modal .row.chk input { width: 1.1rem; height: 1.1rem; accent-color: var(--moss); }
+  #nmd-modal .app.big .ttl { font-size: 1.35rem; }
+  #nmd-modal .app.big .leave { font-size: 1.05rem; }
+  #nmd-modal .empty { margin: 0.8rem; padding: 1rem; background: var(--cream); border-radius: 12px; font-size: 1rem; line-height: 1.4; }
+  #nmd-modal .place { display: block; width: calc(100% - 1.6rem); margin: 0.35rem 0.8rem; padding: 0.8rem; font: inherit; font-size: 1rem; font-weight: 600; text-align: left; background: #fff; border: 2px solid var(--moss); border-radius: 12px; color: var(--forest); cursor: pointer; }
+  #nmd-modal .checkin { display: block; width: calc(100% - 1.6rem); margin: 0.8rem; padding: 0.8rem; font: inherit; font-weight: 700; background: #e7efe6; border: 0; border-radius: 12px; color: var(--forest); cursor: pointer; }
+  #nmd-modal .home { height: 100%; display: grid; place-content: center; gap: 0.8rem; padding: 1rem; }
+  #nmd-modal .wg { width: 150px; padding: 0.8rem; background: var(--forest); color: var(--cream); border-radius: 22px; display: grid; gap: 0.15rem; }
+  #nmd-modal .wl { font-size: 0.65rem; opacity: 0.7; text-transform: uppercase; }
+  #nmd-modal .wt { font-weight: 700; }
+  #nmd-modal .ws { font-size: 0.78rem; opacity: 0.8; }
+  #nmd-modal .wleave { margin-top: 0.4rem; font-size: 0.85rem; color: #bfe0c8; font-weight: 700; }
+  #nmd-modal .hint { text-align: center; font-size: 0.72rem; color: #29402f; }
+  #nmd-modal .hint.dark { color: #8fb59a; padding: 0.8rem; }
+  #nmd-modal .car { padding: 0.8rem; display: grid; gap: 0.5rem; }
+  #nmd-modal .car-h { color: #bfe0c8; font-weight: 700; padding: 0.3rem 0.2rem; }
+  #nmd-modal .car-row { display: grid; text-align: left; gap: 0.1rem; background: #1d2a22; color: #f4f1ea; border: 0; border-radius: 12px; padding: 0.8rem; font: inherit; cursor: pointer; }
+  #nmd-modal .car-row span { font-size: 0.78rem; color: #9db5a4; }
+  #nmd-modal .siri { padding: 1.2rem 1rem; display: grid; gap: 0.8rem; align-content: end; height: 100%; }
+  #nmd-modal .bub { padding: 0.7rem 0.9rem; border-radius: 16px; max-width: 90%; font-size: 0.9rem; }
+  #nmd-modal .bub.me { background: rgba(255,255,255,0.15); color: #fff; justify-self: end; }
+  #nmd-modal .bub.sir { background: #f4f1ea; color: var(--ink); }
+  #nmd-modal .siri .go { background: #bfe0c8; color: var(--ink); margin: 0; }
+  @media (max-width: 720px) { #nmd-modal .stage { grid-template-columns: 1fr; } }
+</style>

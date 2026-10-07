@@ -1,5 +1,5 @@
 // Edit this file to update the Experience section.
-export type DemoKey = 'bulk' | 'speed' | 'errors' | 'gma';
+export type DemoKey = 'bulk' | 'speed' | 'errors' | 'gma' | 'nmd';
 export interface Highlight {
   title: string;       // short, scannable headline
   detail: string;      // one or two sentences shown when expanded
