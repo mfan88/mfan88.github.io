@@ -36,9 +36,14 @@ const nav = [
 
     <section id="about" class="about">
       <h2>About</h2>
-      <p>I'm a software engineering and business student who loves watching new technology turn into something genuinely useful, and I'm always looking for ways to put it in the hands of everyday professionals.</p>
-      <p>I'm also an entrepreneur working to help the care and healthcare sector support its professionals and the people they serve, at free or affordable rates.</p>
-      <p class="muted">Outside of work, I like helping where I can, including volunteering with people with special needs. It's usually the best part of my week.</p>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I'm a software engineering and business student who loves watching new technology turn into something genuinely useful, and I'm always looking for ways to put it in the hands of everyday professionals.</p>
+          <p>I'm also an entrepreneur working to help the care and healthcare sector support its professionals and the people they serve, at free or affordable rates.</p>
+          <p class="muted">Outside of work, I like helping where I can, including volunteering with people with special needs. It's usually the best part of my week.</p>
+        </div>
+        <img class="headshot" src="/headshot.jpg" alt="Headshot of Marcus Fan" width="900" height="900" />
+      </div>
     </section>
     <Experience />
     <Projects />
@@ -86,6 +91,11 @@ const nav = [
   section:not(.hero) { padding: 4rem 0; border-top: 1px solid var(--line); }
   h2 { font-size: 1.8rem; margin-bottom: 0.8rem; }
   .muted { color: var(--muted); }
+  .about-grid { display: grid; grid-template-columns: 1fr minmax(220px, 340px); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+  .headshot { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; display: block;
+    -webkit-mask-image: radial-gradient(closest-side, #000 30%, rgba(0,0,0,0.55) 58%, transparent 100%);
+            mask-image: radial-gradient(closest-side, #000 30%, rgba(0,0,0,0.55) 58%, transparent 100%); }
+  @media (max-width: 720px) { .about-grid { grid-template-columns: 1fr; } .headshot { max-width: 280px; order: -1; margin: 0 auto; } }
   .about p { max-width: 62ch; font-size: 1.08rem; margin-bottom: 0.9rem; }
   .muted a { color: var(--accent); }
   footer { text-align: center; color: var(--muted); padding: 3rem 1rem; font-size: 0.85rem; }
