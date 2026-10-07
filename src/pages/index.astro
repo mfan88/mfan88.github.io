@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Experience from '../components/Experience.astro';
 
 const links = {
   linkedin: 'https://www.linkedin.com/in/marcusfan888/',
@@ -7,6 +8,7 @@ const links = {
 };
 const nav = [
   { href: '#about', label: 'About' },
+  { href: '#experience', label: 'Experience' },
   { href: '#projects', label: 'Projects' },
   { href: '#contact', label: 'Contact' },
 ];
@@ -32,6 +34,7 @@ const nav = [
     </section>
 
     <section id="about"><h2>About</h2><p class="muted">Placeholder — a short intro goes here.</p></section>
+    <Experience />
     <section id="projects"><h2>Projects</h2><p class="muted">Placeholder — selected work goes here.</p></section>
     <section id="contact">
       <h2>Contact</h2>

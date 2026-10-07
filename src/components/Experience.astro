@@ -1,0 +1,119 @@
+---
+import { veloce } from '../data/experience';
+const company = veloce;
+---
+<section id="experience" class="exp">
+  <h2>Experience</h2>
+  <div class="company">
+    <div class="company-head">
+      <h3>{company.name}</h3>
+      <span class="muted">{company.location}</span>
+    </div>
+
+    {company.roles.length > 1 && (
+      <div class="role-tabs" role="tablist">
+        {company.roles.map((r, i) => (
+          <button role="tab" class={i === 0 ? 'active' : ''} data-role={i}>{r.title}</button>
+        ))}
+      </div>
+    )}
+
+    {company.roles.map((r, i) => (
+      <div class="role" data-role-panel={i} hidden={i !== 0}>
+        <div class="role-meta">
+          <strong>{r.title}</strong>
+          <span class="muted">{r.period}</span>
+        </div>
+        <p class="summary">{r.summary}</p>
+
+        <div class="chips" aria-label="Filter highlights by skill">
+          {r.skills.map((s) => <button class="chip" data-skill={s} aria-pressed="false">{s}</button>)}
+        </div>
+
+        <ul class="highlights">
+          {r.highlights.map((h) => (
+            <li class="hl" data-skills={h.skills.join('|')}>
+              <button class="hl-btn" aria-expanded="false">
+                <span class="hl-title">{h.title}</span>
+                <span class="plus" aria-hidden="true">+</span>
+              </button>
+              <div class="hl-detail"><p>{h.detail}</p></div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector<HTMLElement>('#experience')!;
+
+  // Role tabs
+  root.querySelectorAll<HTMLButtonElement>('.role-tabs button').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      root.querySelectorAll('.role-tabs button').forEach((t) => t.classList.toggle('active', t === tab));
+      root.querySelectorAll<HTMLElement>('[data-role-panel]').forEach((p) => {
+        p.hidden = p.dataset.rolePanel !== tab.dataset.role;
+      });
+    });
+  });
+
+  // Expand / collapse highlights
+  root.querySelectorAll<HTMLButtonElement>('.hl-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.closest('.hl')!.classList.toggle('open', !open);
+    });
+  });
+
+  // Skill chips: highlight matching items, dim the rest
+  root.querySelectorAll<HTMLElement>('.role').forEach((role) => {
+    const chips = role.querySelectorAll<HTMLButtonElement>('.chip');
+    const items = role.querySelectorAll<HTMLElement>('.hl');
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const wasOn = chip.getAttribute('aria-pressed') === 'true';
+        chips.forEach((c) => c.setAttribute('aria-pressed', 'false'));
+        const skill = wasOn ? null : chip.dataset.skill!;
+        if (skill) chip.setAttribute('aria-pressed', 'true');
+        items.forEach((li) => {
+          const match = !skill || li.dataset.skills!.split('|').includes(skill);
+          li.classList.toggle('dim', !match);
+          li.classList.toggle('match', !!skill && match);
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .exp { padding: 4rem 0; border-top: 1px solid var(--line); }
+  .company { border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.2rem, 3vw, 2rem); background: rgba(255,255,255,0.03); }
+  .company-head { display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  h3 { font-size: 1.5rem; }
+  .muted { color: var(--muted); font-size: 0.9rem; }
+  .role-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .role-tabs button { background: none; border: 1px solid var(--line); color: var(--muted); padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer; font: inherit; font-size: 0.9rem; }
+  .role-tabs button.active { color: var(--fg); border-color: var(--accent); }
+  .role-meta { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .summary { color: var(--muted); margin: 0.5rem 0 1.2rem; max-width: 60ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
+  .chip { font: inherit; font-size: 0.82rem; font-family: ui-monospace, monospace; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 0.25rem 0.75rem; cursor: pointer; transition: all 0.2s; }
+  .chip:hover { color: var(--fg); border-color: var(--accent); }
+  .chip[aria-pressed='true'] { background: var(--accent); color: #0b0d12; border-color: var(--accent); }
+  .highlights { list-style: none; padding: 0; display: grid; gap: 0.6rem; }
+  .hl { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: opacity 0.25s, border-color 0.25s, background 0.25s; }
+  .hl.dim { opacity: 0.3; }
+  .hl.match { border-color: var(--accent); background: rgba(124,156,255,0.07); }
+  .hl-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; padding: 0.9rem 1rem; cursor: pointer; }
+  .hl-btn:hover { background: rgba(255,255,255,0.04); }
+  .plus { color: var(--accent); font-size: 1.3rem; line-height: 1; transition: transform 0.25s; }
+  .hl.open .plus { transform: rotate(45deg); }
+  .hl-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
+  .hl.open .hl-detail { grid-template-rows: 1fr; }
+  .hl-detail > p { overflow: hidden; color: var(--muted); padding: 0 1rem; }
+  .hl.open .hl-detail > p { padding-bottom: 1rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
