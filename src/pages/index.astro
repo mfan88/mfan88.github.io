@@ -93,8 +93,10 @@ const nav = [
   .muted { color: var(--muted); }
   .about-grid { display: grid; grid-template-columns: 1fr minmax(220px, 340px); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
   .headshot { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; display: block;
-    -webkit-mask-image: radial-gradient(closest-side, #000 30%, rgba(0,0,0,0.55) 58%, transparent 100%);
-            mask-image: radial-gradient(closest-side, #000 30%, rgba(0,0,0,0.55) 58%, transparent 100%); }
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+            mask-composite: intersect; }
   @media (max-width: 720px) { .about-grid { grid-template-columns: 1fr; } .headshot { max-width: 280px; order: -1; margin: 0 auto; } }
   .about p { max-width: 62ch; font-size: 1.08rem; margin-bottom: 0.9rem; }
   .muted a { color: var(--accent); }
