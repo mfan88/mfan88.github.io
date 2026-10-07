@@ -7,6 +7,7 @@ export interface Highlight {
 }
 export interface Role {
   title: string;
+  type?: string;       // e.g. Internship
   period: string;
   summary: string;
   skills: string[];
@@ -14,23 +15,40 @@ export interface Role {
 }
 export interface Company {
   name: string;
-  location: string;
+  location?: string;
   roles: Role[];
 }
 
 export const veloce: Company = {
   name: 'Veloce',
-  location: 'TODO: location',
   roles: [
     {
-      title: 'TODO: Role title',
-      period: 'TODO: Mon YYYY – Mon YYYY',
-      summary: 'TODO: One-sentence summary of what you did at Veloce.',
-      skills: ['Skill A', 'Skill B', 'Skill C'],
+      title: 'Software Engineer',
+      type: 'Internship',
+      period: 'Jul 2025 – Sep 2025 · 3 mos',
+      summary: 'Built enhancements to a client\u2019s Salesforce platform, focused on making quoting (CPQ) faster and smoother.',
+      skills: ['Salesforce', 'CPQ', 'Workflow optimization', 'Collaboration'],
       highlights: [
-        { title: 'TODO: Highlight one', detail: 'TODO: What you did and the impact (numbers help).', skills: ['Skill A'] },
-        { title: 'TODO: Highlight two', detail: 'TODO: What you did and the impact (numbers help).', skills: ['Skill B', 'Skill C'] },
-        { title: 'TODO: Highlight three', detail: 'TODO: What you did and the impact (numbers help).', skills: ['Skill A', 'Skill C'] },
+        {
+          title: 'Delivered Salesforce CPQ enhancements',
+          detail: 'Shipped enhancements to the Salesforce platform with a focus on CPQ (Configure, Price, Quote) efficiency.',
+          skills: ['Salesforce', 'CPQ'],
+        },
+        {
+          title: 'Streamlined quoting workflows',
+          detail: 'Optimized quoting workflows to minimize support handoffs and improve quote cycle time, improving the day-to-day user experience.',
+          skills: ['CPQ', 'Workflow optimization'],
+        },
+        {
+          title: 'Enabled bulk revisions',
+          detail: 'Added bulk revision support so users can update many quotes at once, improving user productivity.',
+          skills: ['Salesforce', 'Workflow optimization'],
+        },
+        {
+          title: 'Drove user adoption with the client team',
+          detail: 'Worked closely with the client project manager and the engineering team to make sure the changes were adopted by users.',
+          skills: ['Collaboration'],
+        },
       ],
     },
   ],

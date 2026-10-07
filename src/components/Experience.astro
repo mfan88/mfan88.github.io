@@ -7,7 +7,7 @@ const company = veloce;
   <div class="company">
     <div class="company-head">
       <h3>{company.name}</h3>
-      <span class="muted">{company.location}</span>
+      {company.location && <span class="muted">{company.location}</span>}
     </div>
 
     {company.roles.length > 1 && (
@@ -21,7 +21,7 @@ const company = veloce;
     {company.roles.map((r, i) => (
       <div class="role" data-role-panel={i} hidden={i !== 0}>
         <div class="role-meta">
-          <strong>{r.title}</strong>
+          <strong>{r.title}{r.type && <span class="badge">{r.type}</span>}</strong>
           <span class="muted">{r.period}</span>
         </div>
         <p class="summary">{r.summary}</p>
@@ -98,6 +98,7 @@ const company = veloce;
   .role-tabs button { background: none; border: 1px solid var(--line); color: var(--muted); padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer; font: inherit; font-size: 0.9rem; }
   .role-tabs button.active { color: var(--fg); border-color: var(--accent); }
   .role-meta { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .badge { margin-left: 0.6rem; font-size: 0.72rem; font-weight: 500; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: middle; }
   .summary { color: var(--muted); margin: 0.5rem 0 1.2rem; max-width: 60ch; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
   .chip { font: inherit; font-size: 0.82rem; font-family: ui-monospace, monospace; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 0.25rem 0.75rem; cursor: pointer; transition: all 0.2s; }
