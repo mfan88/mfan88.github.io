@@ -9,6 +9,7 @@ const company = veloce;
     <div class="company-head">
       <h3>{company.name}</h3>
       {company.location && <span class="muted">{company.location}</span>}
+      <button class="demo-btn launch" data-demo="bulk">▶ Launch interactive demo</button>
     </div>
 
     {company.roles.length > 1 && (
@@ -120,6 +121,7 @@ const company = veloce;
   .hl-detail p { color: var(--muted); }
   .hl.open .hl-detail > .inner { padding-bottom: 1rem; }
   .demo-btn { margin-top: 0.7rem; font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--accent); border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; }
+  .demo-btn.launch { margin: 0 0 0 auto; }
   .demo-btn:hover { background: var(--accent); color: #0b0d12; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>

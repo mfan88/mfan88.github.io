@@ -1,227 +1,363 @@
 ---
-// Fake Salesforce-Lightning-style modals. All data is fictional and the screens
-// are illustrative mockups, not screenshots of any real client system.
-const products = [
-  { name: 'Platform License', qty: 10, price: 120, disc: 10 },
-  { name: 'Implementation Services', qty: 40, price: 150, disc: 0 },
-  { name: 'Premium Support', qty: 1, price: 2400, disc: 5 },
-];
-const quotes = [
-  { id: 'Q-00124', acct: 'Northwind Traders', amt: '$12,400' },
-  { id: 'Q-00125', acct: 'Contoso Ltd', amt: '$8,900' },
-  { id: 'Q-00126', acct: 'Fabrikam Inc', amt: '$21,150' },
-  { id: 'Q-00127', acct: 'Adventure Works', amt: '$5,600' },
-];
-const before = [
-  { t: 'Rep builds quote', h: false },
-  { t: 'Asks support to check pricing', h: true },
-  { t: 'Support replies', h: true },
-  { t: 'Asks support to apply discount', h: true },
-  { t: 'Quote sent', h: false },
-];
-const after = [
-  { t: 'Rep builds quote', h: false },
-  { t: 'Pricing validated automatically', h: false },
-  { t: 'Discount applied in-flow', h: false },
-  { t: 'Quote sent', h: false },
-];
-const phases = [
-  { t: 'Align', d: 'Agree on goals and success criteria with the client project manager.' },
-  { t: 'Build', d: 'Work with the engineering team to design and implement the changes.' },
-  { t: 'Demo', d: 'Show working changes to users early and fold their feedback back in.' },
-  { t: 'Roll out', d: 'Release, support users, and check the changes are actually being used.' },
-];
+// One combined, Salesforce-Lightning-style "Quote Editor" mockup.
+// Fictional data; illustrative only, not a screenshot of any real client system.
 ---
 <dialog id="sf-modal" aria-labelledby="sf-title">
   <div class="sf">
     <header class="sf-head">
-      <h4 id="sf-title">Demo</h4>
+      <h4 id="sf-title">Quote Editor · Q-00127</h4>
       <button class="x" aria-label="Close" data-close>×</button>
     </header>
 
-    <!-- CPQ -->
-    <div class="body" data-demo="cpq" data-title="Edit Quote Lines · Q-00127">
-      <p class="hint">Change quantity or discount — totals recalculate.</p>
-      <table>
-        <thead><tr><th>Product</th><th>Qty</th><th>List</th><th>Disc %</th><th class="r">Net</th></tr></thead>
-        <tbody>
-          {products.map((p) => (
-            <tr data-price={p.price}>
-              <td>{p.name}</td>
-              <td><input type="number" min="0" value={p.qty} data-f="qty" /></td>
-              <td>${p.price.toLocaleString()}</td>
-              <td><input type="number" min="0" max="100" value={p.disc} data-f="disc" /></td>
-              <td class="r net"></td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot><tr><td colspan="4" class="r"><strong>Quote total</strong></td><td class="r"><strong id="cpq-total"></strong></td></tr></tfoot>
-      </table>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="bulk">Bulk editing</button>
+      <button role="tab" data-tab="speed">Faster actions</button>
+      <button role="tab" data-tab="errors">Error handling</button>
     </div>
 
-    <!-- Workflow -->
-    <div class="body" data-demo="workflow" data-title="Quote Workflow">
-      <div class="seg" role="group" aria-label="Before or after">
-        <button aria-pressed="true" data-mode="before">Before</button>
-        <button aria-pressed="false" data-mode="after">After</button>
+    <section class="task">
+      <div class="task-row">
+        <p><strong>Try it:</strong> <span id="task-text"></span></p>
+        <div class="seg" role="group" aria-label="Before or after" id="seg"></div>
       </div>
-      <ol class="steps" data-list="before">
-        {before.map((s) => <li class={s.h ? 'handoff' : ''}>{s.t}{s.h && <span class="tag">Support handoff</span>}</li>)}
-      </ol>
-      <ol class="steps" data-list="after" hidden>
-        {after.map((s) => <li>{s.t}</li>)}
-      </ol>
-      <p class="hint">Illustrative flow: fewer handoffs means a shorter quote cycle.</p>
+      <p class="hint" id="task-hint"></p>
+      <div class="stats">
+        <span>⏱ <b id="st-time">0.0s</b></span>
+        <span>Actions: <b id="st-actions">0</b></span>
+        <span id="st-status" class="status-msg" aria-live="polite"></span>
+        <button class="link-btn" id="reset">Reset</button>
+      </div>
+      <p class="results" id="results"></p>
+    </section>
+
+    <div class="banner" id="banner" hidden role="alert"></div>
+
+    <div class="bulkbar" id="bulkbar" hidden>
+      <span><b id="sel-count">0</b> selected</span>
+      <label>Set discount to <input type="number" id="bulk-val" value="15" min="0" /> %</label>
+      <button class="btn brand" id="bulk-apply">Apply to selected</button>
     </div>
 
-    <!-- Bulk -->
-    <div class="body" data-demo="bulk" data-title="Quotes · Bulk Revise">
-      <table>
-        <thead><tr><th><input type="checkbox" id="bulk-all" aria-label="Select all" /></th><th>Quote</th><th>Account</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody>
-          {quotes.map((q) => (
-            <tr>
-              <td><input type="checkbox" class="bulk-row" aria-label={`Select ${q.id}`} /></td>
-              <td class="link">{q.id}</td><td>{q.acct}</td><td>{q.amt}</td>
-              <td class="status">Draft</td>
-            </tr>
-          ))}
-        </tbody>
+    <div class="tbl-wrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th class="sel"><input type="checkbox" id="sel-all" aria-label="Select all lines" /></th>
+            <th>Product</th><th>Qty</th><th>List</th><th>Disc %</th><th class="r">Net</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
       </table>
-      <div class="actions"><button class="btn brand" id="bulk-go" disabled>Revise Selected (0)</button><span id="bulk-msg" class="toast" hidden></span></div>
     </div>
 
-    <!-- Adoption -->
-    <div class="body" data-demo="adoption" data-title="Rollout Plan">
-      <ol class="path" role="tablist">
-        {phases.map((p, i) => <li><button role="tab" aria-selected={i === 0} data-phase={i}>{p.t}</button></li>)}
-      </ol>
-      <p id="phase-text" class="phase">{phases[0].d}</p>
-      <script type="application/json" id="phase-data" set:html={JSON.stringify(phases.map((p) => p.d))} />
+    <div class="savebar">
+      <div>Quote total <strong id="total"></strong></div>
+      <div class="save-right"><span id="toast" class="toast" hidden></span><button class="btn brand" id="save">Save</button></div>
     </div>
 
     <footer class="sf-foot">
-      <span class="note">Illustrative mockup · fictional data</span>
+      <span class="note">Illustrative mockup · fictional data · delays are simulated</span>
       <button class="btn" data-close>Close</button>
     </footer>
   </div>
 </dialog>
 
 <script>
-  const dlg = document.querySelector<HTMLDialogElement>('#sf-modal')!;
-  const title = dlg.querySelector('#sf-title')!;
-  const bodies = dlg.querySelectorAll<HTMLElement>('.body');
+  type TabKey = 'bulk' | 'speed' | 'errors';
+  interface Line { name: string; qty: number; price: number; disc: number }
+
+  const INITIAL: Line[] = [
+    { name: 'Platform License', qty: 10, price: 120, disc: 10 },
+    { name: 'Implementation Services', qty: 40, price: 150, disc: 0 },
+    { name: 'Premium Support', qty: 1, price: 2400, disc: 5 },
+    { name: 'Training Package', qty: 5, price: 800, disc: 0 },
+    { name: 'Data Migration', qty: 2, price: 3500, disc: 10 },
+    { name: 'Admin Add-on', qty: 8, price: 300, disc: 0 },
+  ];
+  const MAX_DISC = 25;
+  const LAG_MS = 900;
+
+  const TABS: Record<TabKey, { task: string; hint: string; modes: [string, string]; timed: boolean }> = {
+    bulk: {
+      task: 'Set the discount on all 6 lines to 15%.',
+      hint: 'Bulk edit lets you select lines and apply one change to all of them at once.',
+      modes: ['One by one', 'Bulk edit'],
+      timed: true,
+    },
+    speed: {
+      task: 'Set the quantity on the first 3 lines to 5, then press Save.',
+      hint: '“Before fixes” simulates the lag between actions that the bug fixes removed.',
+      modes: ['Before fixes', 'After fixes'],
+      timed: true,
+    },
+    errors: {
+      task: `Enter a 40% discount on any line, then press Save.`,
+      hint: 'Notice what the user is told, and whether they would know how to fix it.',
+      modes: ['Before', 'After'],
+      timed: false,
+    },
+  };
+
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const dlg = $<HTMLDialogElement>('#sf-modal');
+  const rowsEl = $('#rows'), tbl = $('#tbl'), banner = $('#banner'), bulkbar = $('#bulkbar');
+  const selAll = $<HTMLInputElement>('#sel-all'), bulkVal = $<HTMLInputElement>('#bulk-val');
+  const saveBtn = $<HTMLButtonElement>('#save');
   const money = (n: number) => '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
-  function open(name: string) {
-    bodies.forEach((b) => (b.hidden = b.dataset.demo !== name));
-    title.textContent = dlg.querySelector<HTMLElement>(`.body[data-demo="${name}"]`)!.dataset.title!;
-    dlg.showModal();
-  }
-  document.querySelectorAll<HTMLElement>('.demo-btn').forEach((b) =>
-    b.addEventListener('click', () => open(b.dataset.demo!)));
-  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
-  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  let tab: TabKey = 'bulk';
+  const mode: Record<TabKey, 0 | 1> = { bulk: 0, speed: 0, errors: 0 };
+  const results: Record<string, { t: number; n: number }> = {};
+  let lines: Line[] = [];
+  let errors: Record<number, string> = {};
+  let selected = new Set<number>();
+  let actions = 0, startedAt: number | null = null, finished = false, saved = false;
+  let busy = false, tick: number | undefined, bannerShown = false;
 
-  // CPQ
-  const rows = dlg.querySelectorAll<HTMLElement>('[data-demo="cpq"] tbody tr');
-  function calc() {
+  const lag = () => (tab === 'speed' && mode.speed === 0 ? LAG_MS : 0);
+  const bulkOn = () => tab === 'bulk' && mode.bulk === 1;
+  const friendly = () => tab !== 'errors' || mode.errors === 1;
+
+  // ---- build rows once ----
+  INITIAL.forEach((_, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="sel"><input type="checkbox" data-i="${i}" aria-label="Select line ${i + 1}" /></td>
+      <td><div class="pname"></div><div class="msg" hidden></div></td>
+      <td><input type="number" data-f="qty" data-i="${i}" aria-label="Quantity" /></td>
+      <td class="list"></td>
+      <td><input type="number" data-f="disc" data-i="${i}" aria-label="Discount percent" /></td>
+      <td class="r net"></td>`;
+    rowsEl.appendChild(tr);
+  });
+  const rowEls = [...rowsEl.querySelectorAll('tr')];
+
+  // ---- state helpers ----
+  function validate(i: number) {
+    const l = lines[i];
+    let msg = '';
+    if (!Number.isFinite(l.qty) || l.qty < 1) msg = 'Quantity must be at least 1.';
+    else if (l.disc < 0) msg = 'Discount can’t be negative.';
+    else if (l.disc > MAX_DISC)
+      msg = `Discount of ${l.disc}% exceeds the ${MAX_DISC}% limit without approval. Enter ${MAX_DISC}% or less.`;
+    if (msg) errors[i] = msg; else delete errors[i];
+  }
+
+  function refresh() {
     let total = 0;
-    rows.forEach((r) => {
-      const qty = +r.querySelector<HTMLInputElement>('[data-f=qty]')!.value || 0;
-      const disc = Math.min(100, +r.querySelector<HTMLInputElement>('[data-f=disc]')!.value || 0);
-      const net = qty * +r.dataset.price! * (1 - disc / 100);
-      r.querySelector('.net')!.textContent = money(net);
+    rowEls.forEach((tr, i) => {
+      const l = lines[i];
+      const q = tr.querySelector<HTMLInputElement>('[data-f=qty]')!;
+      const d = tr.querySelector<HTMLInputElement>('[data-f=disc]')!;
+      if (document.activeElement !== q) q.value = Number.isFinite(l.qty) ? String(l.qty) : '';
+      if (document.activeElement !== d) d.value = Number.isFinite(l.disc) ? String(l.disc) : '';
+      q.readOnly = d.readOnly = busy;
+      tr.querySelector('.pname')!.textContent = l.name;
+      tr.querySelector('.list')!.textContent = money(l.price);
+      const net = (l.qty || 0) * l.price * (1 - (l.disc || 0) / 100);
       total += net;
+      tr.querySelector('.net')!.textContent = busy ? '…' : money(net);
+      const show = friendly() && !!errors[i];
+      q.classList.toggle('bad', show && /Quantity/.test(errors[i]));
+      d.classList.toggle('bad', show && !/Quantity/.test(errors[i]));
+      const m = tr.querySelector<HTMLElement>('.msg')!;
+      m.hidden = !show;
+      m.textContent = show ? errors[i] : '';
+      tr.querySelector<HTMLInputElement>('.sel input')!.checked = selected.has(i);
     });
-    dlg.querySelector('#cpq-total')!.textContent = money(total);
+    $('#total').textContent = busy ? '…' : money(total);
+    tbl.classList.toggle('bulk-on', bulkOn());
+    tbl.classList.toggle('busy', busy);
+    bulkbar.hidden = !bulkOn();
+    $('#sel-count').textContent = String(selected.size);
+    selAll.checked = selected.size === lines.length;
+    const nErr = Object.keys(errors).length;
+    const block = friendly() && nErr > 0;
+    saveBtn.disabled = busy || block;
+    saveBtn.textContent = busy ? 'Working…' : block ? `Fix ${nErr} issue${nErr > 1 ? 's' : ''} to save` : 'Save';
+    banner.hidden = !(bannerShown && !friendly() && nErr > 0);
   }
-  rows.forEach((r) => r.addEventListener('input', calc));
-  calc();
 
-  // Workflow
-  dlg.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) =>
-    b.addEventListener('click', () => {
-      dlg.querySelectorAll('[data-mode]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
-      dlg.querySelectorAll<HTMLElement>('[data-list]').forEach((l) => (l.hidden = l.dataset.list !== b.dataset.mode));
-    }));
-
-  // Bulk revise
-  const all = dlg.querySelector<HTMLInputElement>('#bulk-all')!;
-  const checks = [...dlg.querySelectorAll<HTMLInputElement>('.bulk-row')];
-  const go = dlg.querySelector<HTMLButtonElement>('#bulk-go')!;
-  const msg = dlg.querySelector<HTMLElement>('#bulk-msg')!;
-  function sync() {
-    const n = checks.filter((c) => c.checked).length;
-    go.textContent = `Revise Selected (${n})`;
-    go.disabled = n === 0;
-    all.checked = n === checks.length;
+  function renderStats() {
+    const secs = startedAt ? ((finished ? stopAt : performance.now()) - startedAt) / 1000 : 0;
+    $('#st-time').textContent = secs.toFixed(1) + 's';
+    $('#st-actions').textContent = String(actions);
   }
-  all.addEventListener('change', () => { checks.forEach((c) => (c.checked = all.checked)); sync(); });
-  checks.forEach((c) => c.addEventListener('change', sync));
-  go.addEventListener('click', () => {
-    const picked = checks.filter((c) => c.checked);
-    picked.forEach((c) => {
-      const st = c.closest('tr')!.querySelector('.status')!;
-      st.textContent = 'Revised';
-      st.classList.add('done');
-      c.checked = false;
-    });
-    sync();
-    msg.textContent = `${picked.length} quote${picked.length > 1 ? 's' : ''} revised`;
-    msg.hidden = false;
+  let stopAt = 0;
+
+  function renderResults() {
+    const cfg = TABS[tab];
+    const parts = ([0, 1] as const)
+      .map((m) => ({ m, r: results[`${tab}${m}`] }))
+      .filter((x) => x.r)
+      .map((x) => `<span class="res${x.m === mode[tab] ? ' cur' : ''}">${cfg.modes[x.m]}: <b>${x.r.t.toFixed(1)}s</b> · ${x.r.n} action${x.r.n === 1 ? '' : 's'}</span>`);
+    $('#results').innerHTML = cfg.timed && parts.length ? 'Your results: ' + parts.join('') : '';
+  }
+
+  function startTimer() {
+    if (startedAt) return;
+    startedAt = performance.now();
+    tick = window.setInterval(renderStats, 100);
+  }
+
+  function taskComplete() {
+    if (tab === 'bulk') return lines.every((l) => l.disc === 15);
+    if (tab === 'speed') return saved && lines.slice(0, 3).every((l) => l.qty === 5);
+    return false;
+  }
+  function checkDone() {
+    if (finished || busy || !startedAt || !TABS[tab].timed || !taskComplete()) return;
+    finished = true;
+    stopAt = performance.now();
+    clearInterval(tick);
+    const t = (stopAt - startedAt) / 1000;
+    results[`${tab}${mode[tab]}`] = { t, n: actions };
+    renderStats();
+    $('#st-status').textContent = '✓ Task complete';
+    renderResults();
+  }
+
+  function runBusy(ms: number, then: () => void) {
+    if (!ms) { then(); refresh(); checkDone(); return; }
+    busy = true; refresh();
+    window.setTimeout(() => { busy = false; then(); refresh(); checkDone(); }, ms);
+  }
+
+  function reset() {
+    clearInterval(tick);
+    lines = INITIAL.map((l) => ({ ...l }));
+    errors = {}; selected = new Set();
+    actions = 0; startedAt = null; finished = false; saved = false; busy = false; bannerShown = false;
+    $('#st-status').textContent = '';
+    $('#toast').hidden = true;
+    renderStats(); renderResults(); refresh();
+  }
+
+  function setTab(t: TabKey) {
+    tab = t;
+    const cfg = TABS[t];
+    dlg.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+    $('#task-text').textContent = cfg.task;
+    $('#task-hint').textContent = cfg.hint;
+    $('#seg').innerHTML = cfg.modes.map((label, i) => `<button data-mode="${i}" aria-pressed="${mode[t] === i}">${label}</button>`).join('');
+    dlg.querySelectorAll<HTMLElement>('.stats').forEach((s) => (s.hidden = !cfg.timed));
+    reset();
+  }
+
+  // ---- events ----
+  $('#seg').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-mode]');
+    if (!b) return;
+    mode[tab] = +b.dataset.mode! as 0 | 1;
+    setTab(tab);
+  });
+  dlg.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab as TabKey)));
+  $('#reset').addEventListener('click', reset);
+
+  rowsEl.addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement;
+    if (!el.dataset.f) return;
+    startTimer();
+    const i = +el.dataset.i!;
+    const v = el.value === '' ? NaN : +el.value;
+    (lines[i] as any)[el.dataset.f] = v;
+    validate(i);
+    bannerShown = false;
+    refresh();
+  });
+  rowsEl.addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el.dataset.f) {
+      actions++; renderStats();
+      runBusy(lag(), () => {});
+    } else if (el.type === 'checkbox') {
+      const i = +el.dataset.i!;
+      el.checked ? selected.add(i) : selected.delete(i);
+      refresh();
+    }
+  });
+  selAll.addEventListener('change', () => {
+    selected = selAll.checked ? new Set(lines.map((_, i) => i)) : new Set();
+    refresh();
+  });
+  $('#bulk-apply').addEventListener('click', () => {
+    if (!selected.size) return;
+    startTimer();
+    const v = +bulkVal.value;
+    selected.forEach((i) => { lines[i].disc = v; validate(i); });
+    actions++; renderStats();
+    refresh(); checkDone();
   });
 
-  // Adoption
-  const texts: string[] = JSON.parse(dlg.querySelector('#phase-data')!.textContent!);
-  dlg.querySelectorAll<HTMLButtonElement>('[data-phase]').forEach((b) =>
-    b.addEventListener('click', () => {
-      dlg.querySelectorAll('[data-phase]').forEach((o) => o.setAttribute('aria-selected', String(o === b)));
-      dlg.querySelector('#phase-text')!.textContent = texts[+b.dataset.phase!];
-    }));
+  saveBtn.addEventListener('click', () => {
+    startTimer();
+    actions++; renderStats();
+    if (Object.keys(errors).length) { bannerShown = true; banner.textContent = 'An error occurred. Please contact your administrator.'; refresh(); return; }
+    runBusy(lag(), () => {
+      saved = true;
+      const t = $('#toast'); t.textContent = '✓ Quote saved'; t.hidden = false;
+    });
+  });
+
+  // ---- open / close ----
+  function open(name: string) {
+    setTab((name in TABS ? name : 'bulk') as TabKey);
+    dlg.showModal();
+  }
+  document.querySelectorAll<HTMLElement>('.demo-btn').forEach((b) => b.addEventListener('click', () => open(b.dataset.demo!)));
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => clearInterval(tick));
+  setTab('bulk');
 </script>
 
-<style>
-  dialog { border: 0; padding: 0; background: none; max-width: 100vw; margin: auto; }
-  dialog::backdrop { background: rgba(8, 10, 16, 0.7); backdrop-filter: blur(4px); }
+<style is:global>
+  #sf-modal { border: 0; padding: 0; background: none; max-width: 100vw; margin: auto; }
+  #sf-modal::backdrop { background: rgba(8, 10, 16, 0.7); backdrop-filter: blur(4px); }
   /* Light, Lightning-esque palette, deliberately separate from the dark site */
-  .sf { --blue: #0176d3; --bd: #dddbda; --tx: #181818; --mu: #5c5c5c;
-    width: min(680px, 94vw); max-height: 90vh; overflow: auto; background: #fff; color: var(--tx);
+  #sf-modal .sf { --blue: #0176d3; --bd: #dddbda; --tx: #181818; --mu: #5c5c5c; --red: #ba0517; --green: #2e844a;
+    width: min(760px, 95vw); max-height: 92vh; overflow: auto; background: #fff; color: var(--tx);
     border-radius: 0.5rem; font-size: 0.9rem; font-family: ui-sans-serif, system-ui, sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-  .sf-head { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--bd); background: #f3f3f3; border-radius: 0.5rem 0.5rem 0 0; }
-  h4 { font-size: 1.1rem; font-weight: 600; }
-  .x { background: none; border: 0; font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--mu); }
-  .body { padding: 1.2rem; }
-  .body[hidden], [hidden] { display: none !important; }
-  .hint { color: var(--mu); font-size: 0.82rem; margin: 0.6rem 0 0; }
-  table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; }
-  th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mu); background: #fafaf9; }
-  th, td { padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--bd); }
-  .r { text-align: right; }
-  td input[type='number'] { width: 4.2rem; padding: 0.3rem 0.4rem; border: 1px solid #c9c7c5; border-radius: 4px; font: inherit; }
-  td input:focus { outline: 2px solid var(--blue); outline-offset: 0; }
-  .link { color: var(--blue); }
-  .status { color: var(--mu); }
-  .status.done { color: #2e844a; font-weight: 600; }
-  .actions { margin-top: 1rem; display: flex; align-items: center; gap: 0.8rem; }
-  .toast { color: #2e844a; font-weight: 600; }
-  .btn { font: inherit; padding: 0.45rem 1rem; border-radius: 4px; border: 1px solid var(--bd); background: #fff; color: var(--blue); cursor: pointer; }
-  .btn.brand { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .seg { display: inline-flex; border: 1px solid var(--blue); border-radius: 4px; overflow: hidden; }
-  .seg button { font: inherit; padding: 0.35rem 1rem; border: 0; background: #fff; color: var(--blue); cursor: pointer; }
-  .seg button[aria-pressed='true'] { background: var(--blue); color: #fff; }
-  .steps { margin: 1rem 0 0; padding-left: 1.3rem; display: grid; gap: 0.5rem; }
-  .steps li::marker { color: var(--mu); }
-  .handoff { color: #ba0517; }
-  .tag { margin-left: 0.5rem; font-size: 0.72rem; background: #fde9e7; color: #ba0517; padding: 0.05rem 0.5rem; border-radius: 999px; }
-  .path { list-style: none; padding: 0; margin: 0; display: flex; }
-  .path li { flex: 1; }
-  .path button { width: 100%; font: inherit; padding: 0.6rem 0.4rem; border: 0; background: #ecebea; color: var(--tx); cursor: pointer; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%); }
-  .path li:first-child button { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); }
-  .path button[aria-selected='true'] { background: var(--blue); color: #fff; }
-  .phase { margin-top: 1.2rem; padding: 0.9rem 1rem; background: #f3f3f3; border-radius: 4px; }
-  .sf-foot { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.2rem; border-top: 1px solid var(--bd); background: #f3f3f3; border-radius: 0 0 0.5rem 0.5rem; }
-  .note { color: var(--mu); font-size: 0.78rem; }
-  @media (max-width: 520px) { th, td { padding: 0.4rem 0.3rem; font-size: 0.8rem; } td input[type='number'] { width: 3.2rem; } }
+  #sf-modal [hidden] { display: none !important; }
+  #sf-modal .sf-head { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--bd); background: #f3f3f3; border-radius: 0.5rem 0.5rem 0 0; }
+  #sf-modal h4 { font-size: 1.1rem; font-weight: 600; }
+  #sf-modal .x { background: none; border: 0; font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--mu); }
+  #sf-modal .tabs { display: flex; border-bottom: 1px solid var(--bd); padding: 0 0.6rem; overflow-x: auto; }
+  #sf-modal .tabs button { font: inherit; background: none; border: 0; border-bottom: 3px solid transparent; padding: 0.7rem 1rem; color: var(--mu); cursor: pointer; white-space: nowrap; }
+  #sf-modal .tabs button[aria-selected='true'] { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+  #sf-modal .task { padding: 1rem 1.2rem 0.4rem; }
+  #sf-modal .task-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  #sf-modal .hint { color: var(--mu); font-size: 0.82rem; margin: 0.4rem 0 0; }
+  #sf-modal .stats { display: flex; gap: 1.2rem; align-items: center; margin-top: 0.7rem; font-size: 0.85rem; flex-wrap: wrap; }
+  #sf-modal .status-msg { color: var(--green); font-weight: 600; }
+  #sf-modal .link-btn { margin-left: auto; font: inherit; background: none; border: 0; color: var(--blue); cursor: pointer; }
+  #sf-modal .results { margin: 0.4rem 0 0; font-size: 0.82rem; color: var(--mu); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; min-height: 0; }
+  #sf-modal .results:empty { display: none; }
+  #sf-modal .res { background: #f3f3f3; border-radius: 999px; padding: 0.15rem 0.7rem; }
+  #sf-modal .res.cur { background: #e1f0fc; color: #014486; }
+  #sf-modal .seg { display: inline-flex; border: 1px solid var(--blue); border-radius: 4px; overflow: hidden; }
+  #sf-modal .seg button { font: inherit; padding: 0.35rem 0.9rem; border: 0; background: #fff; color: var(--blue); cursor: pointer; }
+  #sf-modal .seg button[aria-pressed='true'] { background: var(--blue); color: #fff; }
+  #sf-modal .banner { margin: 0.8rem 1.2rem 0; padding: 0.7rem 1rem; background: #fde9e7; color: var(--red); border: 1px solid #f5b5ae; border-radius: 4px; font-weight: 600; }
+  #sf-modal .bulkbar { margin: 0.8rem 1.2rem 0; padding: 0.6rem 1rem; background: #e1f0fc; border-radius: 4px; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  #sf-modal .bulkbar input { width: 4rem; padding: 0.3rem 0.4rem; border: 1px solid #c9c7c5; border-radius: 4px; font: inherit; }
+  #sf-modal .tbl-wrap { padding: 0.6rem 1.2rem; overflow-x: auto; }
+  #sf-modal table { width: 100%; border-collapse: collapse; min-width: 480px; }
+  #sf-modal th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mu); background: #fafaf9; }
+  #sf-modal th, #sf-modal td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--bd); vertical-align: top; }
+  #sf-modal .r { text-align: right; }
+  #sf-modal table:not(.bulk-on) .sel { display: none; }
+  #sf-modal table.busy { opacity: 0.6; }
+  #sf-modal td input[type='number'] { width: 4.2rem; padding: 0.3rem 0.4rem; border: 1px solid #c9c7c5; border-radius: 4px; font: inherit; }
+  #sf-modal td input:focus { outline: 2px solid var(--blue); outline-offset: 0; }
+  #sf-modal td input.bad { border-color: var(--red); background: #fef5f4; }
+  #sf-modal .msg { color: var(--red); font-size: 0.78rem; margin-top: 0.2rem; max-width: 22ch; }
+  #sf-modal .savebar { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 1.2rem 1rem; flex-wrap: wrap; gap: 0.6rem; }
+  #sf-modal .save-right { display: flex; align-items: center; gap: 0.8rem; }
+  #sf-modal .toast { color: var(--green); font-weight: 600; }
+  #sf-modal .btn { font: inherit; padding: 0.45rem 1rem; border-radius: 4px; border: 1px solid var(--bd); background: #fff; color: var(--blue); cursor: pointer; }
+  #sf-modal .btn.brand { background: var(--blue); color: #fff; border-color: var(--blue); }
+  #sf-modal .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  #sf-modal .sf-foot { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1.2rem; border-top: 1px solid var(--bd); background: #f3f3f3; border-radius: 0 0 0.5rem 0.5rem; gap: 1rem; }
+  #sf-modal .note { color: var(--mu); font-size: 0.78rem; }
 </style>
