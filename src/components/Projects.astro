@@ -5,7 +5,7 @@ import Mock from './Mock.astro';
 <section id="projects" class="proj">
   <h2>Projects</h2>
   {projects.map((p) => (
-    <article class="card" id={`proj-${p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+    <article class="card" id={`proj-${p.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
       <div class="co-main">
       <div class="card-head">
         {p.logo && <img src={p.logo} alt="" width="52" height="52" />}

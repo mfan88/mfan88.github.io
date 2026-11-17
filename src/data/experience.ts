@@ -1,5 +1,5 @@
 // Edit this file to update the Experience section.
-export type MockKind = 'gma' | 'veloce' | 'nmd' | 'flowpt';
+export type MockKind = 'gma' | 'veloce' | 'nmd' | 'kineo';
 export interface Highlight {
   title: string;       // short, scannable headline
   detail: string;      // one or two sentences shown when expanded

@@ -53,17 +53,24 @@ const { kind, rich = false } = Astro.props;
       </div>
     </div>
   )}
-  {kind === 'flowpt' && (
-    <div class="window">
-      <div class="bar"><i></i><i></i><i></i></div>
-      <div class="body">
-        <div class="side"><i></i><i></i><i></i><i></i></div>
-        <div class="main">
-          <i class="h"></i><i></i><i></i>
-          <div class="sugg"><span>Suggested from earlier charts, on-device</span><i></i><i></i></div>
-          <i></i>
-        </div>
+  {kind === 'kineo' && (
+    <div class="stack">
+      <div class="card home">
+        <p class="ask">Who are you seeing?</p>
+        <div class="search">Search patients</div>
+        <div class="pt"><span class="av">JL</span><span>Jordan Lee</span><span class="when">10:30</span></div>
+        <div class="pt"><span class="av">SP</span><span>Sam Patel</span><span class="when">11:15</span></div>
+        <p class="sub">Needs attention</p>
+        <div class="att"><span>Visits ready to invoice</span><b>3</b></div>
+        <div class="att"><span>Invoices waiting on payment</span><b>2</b></div>
       </div>
+      {rich && (
+        <div class="card inv">
+          <div class="inv-head"><p class="t">Invoice INV-0042</p><span class="lock">Locked</span></div>
+          <div class="steps"><span class="done">Draft</span><i></i><span class="done">Sent</span><i></i><span class="now">Paid</span></div>
+          <div class="row"><span>2 visits, GST 5%</span><span>$189.00</span></div>
+        </div>
+      )}
     </div>
   )}
 </div>
@@ -73,7 +80,7 @@ const { kind, rich = false } = Astro.props;
   .frame-gma { background: #1f4e4a; }
   .frame-veloce { background: #2b2b2b; }
   .frame-nmd { background: #c9d8ea; }
-  .frame-flowpt { background: #e2d6c2; }
+  .frame-kineo { background: #e2d6c2; }
 
   .stack { width: min(100%, 15.5rem); display: grid; gap: 0.75rem; }
   .card { background: #fff; border-radius: 12px; padding: 1rem; display: grid; gap: 0.6rem; box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25); }
@@ -110,15 +117,21 @@ const { kind, rich = false } = Astro.props;
   .ev i { width: 60%; height: 5px; border-radius: 3px; background: #e6e3db; }
   .leave { background: #141414; color: #fff; border-radius: 10px; padding: 0.45rem; font-size: 0.58rem; font-weight: 600; text-align: center; }
 
-  .window { width: 100%; aspect-ratio: 700 / 380; background: #fff; border-radius: 8px; overflow: hidden; display: grid; grid-template-rows: 18px 1fr; box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15); }
-  .window .bar { background: #f1efe9; display: flex; gap: 4px; align-items: center; padding: 0 7px; }
-  .window .bar i { width: 6px; height: 6px; border-radius: 50%; background: #d6d3ca; }
-  .window .body { display: grid; grid-template-columns: 26% 1fr; }
-  .side { background: #faf9f6; border-right: 1px solid #eee; padding: 8px; display: grid; align-content: start; gap: 6px; }
-  .side i, .main > i, .sugg i { display: block; height: 5px; border-radius: 3px; background: #e6e3db; }
-  .main { padding: 10px; display: grid; align-content: start; gap: 6px; }
-  .main > i.h { width: 40%; height: 7px; background: #d6d3ca; }
-  .sugg { border: 1px dashed #9fc3b0; background: #f1f8f4; border-radius: 5px; padding: 6px; display: grid; gap: 4px; }
-  .sugg span { font-size: 0.5rem; font-weight: 600; color: #2f6b4f; }
-  .sugg i { background: #cfe3d7; }
+  .home { gap: 0.5rem; }
+  .ask { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; line-height: 1.2; }
+  .search { border: 1px solid #dcdad2; border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 0.65rem; color: #8a8880; }
+  .pt { display: flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; padding: 0.15rem 0; }
+  .av { width: 20px; height: 20px; border-radius: 50%; background: #e2d6c2; display: grid; place-items: center; font-size: 0.5rem; font-weight: 600; }
+  .when { margin-left: auto; color: #5f5e5a; }
+  .sub { font-size: 0.62rem; font-weight: 600; color: #5f5e5a; margin-top: 0.2rem; }
+  .att { display: flex; justify-content: space-between; align-items: center; background: #f4f3ef; border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.62rem; }
+  .att b { background: #2b2b2b; color: #fff; border-radius: 999px; min-width: 1.1rem; text-align: center; font-size: 0.58rem; padding: 0.05rem 0.3rem; }
+  .inv { gap: 0.5rem; }
+  .inv-head { display: flex; justify-content: space-between; align-items: center; }
+  .lock { font-size: 0.58rem; font-weight: 600; color: #5f5e5a; background: #f4f3ef; border-radius: 999px; padding: 0.1rem 0.5rem; }
+  .steps { display: flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; }
+  .steps i { flex: 1; height: 1px; background: #c9c6bc; }
+  .steps span { border-radius: 999px; padding: 0.1rem 0.45rem; }
+  .steps .done { color: #5f5e5a; background: #f4f3ef; }
+  .steps .now { color: #fff; background: #2f6b4f; font-weight: 600; }
 </style>

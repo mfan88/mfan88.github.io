@@ -18,7 +18,7 @@ export const navigateMyDay: Project = {
   tagline: 'Your calendar, turned into directions.',
   status: 'iOS app · in TestFlight',
   mock: 'nmd',
-  logo: '/projects/navigatemyday.svg',
+  logo: '/projects/navigatemyday.png',
   summary:
     'A native iPhone app that links calendar events to places, works out when you need to leave, and starts directions in one tap. It is built for busy professionals who are always on the move, and for people who need a little help getting where they need to go.',
   built: 'SwiftUI · SwiftData · EventKit · MapKit · WidgetKit · App Intents · CarPlay',
@@ -72,42 +72,102 @@ export const navigateMyDay: Project = {
   ],
 };
 
-export const flowPT: Project = {
-  name: 'FlowPT',
-  tagline: 'Clinic software that keeps client data on the clinician\u2019s machine.',
-  status: 'Desktop app · in progress',
-  mock: 'flowpt',
+export const kineo: Project = {
+  name: 'kineō',
+  tagline: 'Simple notes and invoicing for solo physiotherapists.',
+  status: 'Desktop and phone app · early beta',
+  mock: 'kineo',
   summary:
-    'A local-first, multi-platform desktop app for private clinicians that covers clinical notes, invoicing and payments. An embedded vision-language model runs on the clinician\u2019s own machine, so client data never has to leave it.',
-  built: 'Qt · C++ · Local vision-language model · Optional cloud sync',
-  skills: ['Local-first', 'On-device AI', 'Privacy'],
+    'Most clinic software is built for clinics with many practitioners. It comes with scheduling, insurance billing, reporting and dozens of settings. A physiotherapist working alone mostly needs two things after a session: write the note and send the invoice. kineō does less on purpose.',
+  built: 'TypeScript · React · React Native / Expo · Tauri (Rust) · Supabase / Postgres · PowerSync · Clerk · HeroUI · Zod · Vitest · pgTAP',
+  skills: ['Product', 'Invoicing', 'Offline-first', 'Architecture', 'Privacy', 'AI workflow'],
   groups: [
     {
-      label: 'What it does',
+      label: 'The product',
       highlights: [
         {
-          title: 'Notes, invoicing and payments in one app',
-          detail: 'Clinicians write clinical notes, create invoices and track payments without switching tools.',
-          skills: ['Local-first'],
+          title: 'One home screen: “Who are you seeing?”',
+          detail: 'Everything starts from one home screen. From there you find a patient, write the note and see what needs attention, like visits ready to invoice and invoices waiting on payment.',
+          skills: ['Product'],
         },
         {
-          title: 'Note suggestions from earlier charts',
-          detail: 'A vision-language model embedded in the app suggests notes based on a client\u2019s previous charts, running entirely on the clinician\u2019s machine.',
-          skills: ['On-device AI', 'Privacy'],
+          title: 'Fast visit notes',
+          detail: 'Quick-tap chips for common findings, dictation, copying the last visit’s note, and items attached from your price list.',
+          skills: ['Product'],
         },
         {
-          title: 'Invoice templates pulled from PDFs',
-          detail: 'The same local model extracts an invoice template from an existing PDF, so clinicians keep the invoice layout they already use.',
-          skills: ['On-device AI'],
+          title: 'Invoicing with a full lifecycle',
+          detail: 'One invoice can cover several visits. It has optional tax, numbers that only count up in a format you choose, and a full lifecycle (draft → sent → paid, plus cancel and undo), with locking so sent records never change.',
+          skills: ['Invoicing'],
         },
         {
-          title: 'Cloud sync only if you want it',
-          detail: 'Data stays on the device by default. Cloud sync is optional.',
-          skills: ['Local-first', 'Privacy'],
+          title: 'Funded patients',
+          detail: 'You can bill a funder instead of the patient, and sending is checked so each required detail is filled in first.',
+          skills: ['Invoicing'],
+        },
+        {
+          title: 'Invoice styling on desktop',
+          detail: 'Logo, accent colour, font, header layout and footer, with a PDF preview that matches exactly what the patient receives.',
+          skills: ['Invoicing', 'Product'],
+        },
+        {
+          title: 'Offline first',
+          detail: 'Reads and writes go to a local SQLite database and sync in the background.',
+          skills: ['Offline-first'],
+        },
+      ],
+    },
+    {
+      label: 'How it’s built',
+      highlights: [
+        {
+          title: 'Monorepo, TypeScript everywhere',
+          detail: 'A desktop app (Tauri 2 + React + HeroUI), a phone app (Expo + React Native + HeroUI Native) and a marketing website.',
+          skills: ['Architecture'],
+        },
+        {
+          title: 'Shared core package',
+          detail: 'The invoice maths, Zod validation and sync logic live in one place, so the apps never duplicate business rules. Money is stored as integer cents and tax as basis points, with no floating point.',
+          skills: ['Architecture', 'Invoicing'],
+        },
+        {
+          title: 'Supabase backend with row-level security',
+          detail: 'Postgres with row-level security on every table, keyed to Clerk user IDs. Server-side triggers and functions enforce locking and invoice numbering.',
+          skills: ['Architecture', 'Privacy'],
+        },
+        {
+          title: 'PowerSync between devices',
+          detail: 'PowerSync syncs each device’s local SQLite with Postgres. The server settles invoice-number conflicts between devices.',
+          skills: ['Offline-first', 'Architecture'],
+        },
+        {
+          title: 'Tested down to the database',
+          detail: 'Vitest and Jest for the apps, and pgTAP tests for database security and lock rules.',
+          skills: ['Architecture', 'Privacy'],
+        },
+        {
+          title: 'Shared design system',
+          detail: 'A shared token package with light and dark themes and WCAG-minded contrast. Loading, empty and error states are required on every screen.',
+          skills: ['Product', 'Architecture'],
+        },
+      ],
+    },
+    {
+      label: 'Privacy and process',
+      highlights: [
+        {
+          title: 'Privacy by design',
+          detail: 'kineō handles personal health information, so the rules are strict. No secrets go in client code. Patient details never appear in logs or error messages, auth tokens live in secure storage, and test fixtures use only made-up data.',
+          skills: ['Privacy'],
+        },
+        {
+          title: 'Multi-agent AI development workflow',
+          detail: 'Claude and Gemini “PM” agents split the work into Linear tickets and coordinated through Slack, and each PR had to pass review from both sides before it reached me for the final review and merge.',
+          skills: ['AI workflow'],
         },
       ],
     },
   ],
 };
 
-export const projects: Project[] = [navigateMyDay, flowPT];
+export const projects: Project[] = [navigateMyDay, kineo];
