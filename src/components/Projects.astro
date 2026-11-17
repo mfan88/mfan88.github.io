@@ -74,13 +74,14 @@ import Mock from './Mock.astro';
 </script>
 
 <style>
-  .proj { scroll-margin-top: 4.5rem; padding: 4rem 0 2rem; border-top: 1px solid var(--line); }
+  .proj { padding: 4rem 0 2rem; border-top: 1px solid var(--line); }
   .proj > h2 { margin-bottom: 1.5rem; }
   .card + .card { margin-top: 1.25rem; }
-  .card { scroll-margin-top: 5rem; border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.25rem, 3vw, 2rem); background: var(--surface); }
-  .card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+  .card { border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.25rem, 3vw, 2rem); background: var(--surface); }
+  .card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
   .co-mock { position: sticky; top: 6rem; border-radius: 10px; overflow: hidden; min-height: 22rem; display: grid; }
-  @media (max-width: 860px) { .card { grid-template-columns: 1fr; } .co-mock { position: static; order: -1; min-height: 18rem; } }
+  .co-mock > :global(.frame) { border-radius: 10px; }
+  @media (max-width: 53.75em) { .card { grid-template-columns: 1fr; } .co-mock { position: static; order: -1; min-height: 18rem; } }
   .card-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
   .card-head img { border-radius: 12px; }
   .titles { flex: 1; min-width: 12rem; }

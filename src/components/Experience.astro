@@ -94,13 +94,14 @@ import Mock from './Mock.astro';
 </script>
 
 <style>
-  .exp { scroll-margin-top: 4.5rem; padding: 4rem 0 2rem; border-top: 1px solid var(--line); }
+  .exp { padding: 4rem 0 2rem; border-top: 1px solid var(--line); }
   .exp > h2 { margin-bottom: 1.5rem; }
   .company + .company { margin-top: 1.25rem; }
-  .company { scroll-margin-top: 5rem; border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.25rem, 3vw, 2rem); background: var(--surface); }
-  .company { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+  .company { border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.25rem, 3vw, 2rem); background: var(--surface); }
+  .company { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
   .co-mock { position: sticky; top: 6rem; border-radius: 10px; overflow: hidden; min-height: 22rem; display: grid; }
-  @media (max-width: 860px) { .company { grid-template-columns: 1fr; } .co-mock { position: static; order: -1; min-height: 18rem; } }
+  .co-mock > :global(.frame) { border-radius: 10px; }
+  @media (max-width: 53.75em) { .company { grid-template-columns: 1fr; } .co-mock { position: static; order: -1; min-height: 18rem; } }
   .company-head { display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
   .muted { color: var(--muted); font-size: var(--text-label); }
   .role-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }

@@ -64,7 +64,7 @@ const items = [
 </section>
 
 <style>
-  .showcase { padding: clamp(3rem, 6vw, 5rem) var(--pad) clamp(4rem, 8vw, 7rem); scroll-margin-top: 4.5rem; }
+  .showcase { padding: clamp(3rem, 6vw, 5rem) var(--pad) clamp(4rem, 8vw, 7rem); }
   .grid {
     list-style: none; padding: 0; margin-top: clamp(2rem, 4vw, 3.5rem);
     display: grid; gap: clamp(2.5rem, 4vw, 3rem) 2rem;
@@ -81,13 +81,15 @@ const items = [
     color: var(--fg); user-select: none;
   }
   .tile {
-    position: relative; z-index: 1; aspect-ratio: 316 / 372; border-radius: 6px; overflow: hidden;
+    /* aspect-ratio is a minimum here: with no overflow clipping the tile grows when text is enlarged */
+    position: relative; z-index: 1; aspect-ratio: 316 / 372; border-radius: 6px; display: grid;
     
   }
 
   .label { margin-top: 1.75rem; font-size: var(--text-label); font-weight: 500; line-height: 1.4; }
   h3 { margin-top: 0.9rem; }
-  h3 a { display: inline-flex; align-items: center; gap: 0.85rem; text-decoration: none; }
+  h3 a { display: inline-flex; align-items: center; gap: 0.85rem; max-width: 100%; text-decoration: none; }
+  h3 a span { min-width: 0; overflow-wrap: anywhere; }
   h3 a:hover span { text-decoration: underline; }
   .arrow { flex: none; width: 2.5rem; height: 2.5rem; transition: transform 0.2s ease; }
   .arrow circle { fill: var(--fg); }
@@ -95,10 +97,10 @@ const items = [
   h3 a:hover .arrow { transform: translateX(3px); }
   .desc { margin-top: 0.9rem; color: var(--muted); line-height: 1.5; max-width: 40ch; }
 
-  @media (max-width: 1100px) {
+  @media (max-width: 68.75em) {
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
-  @media (max-width: 640px) {
+  @media (max-width: 40em) {
     .grid { grid-template-columns: 1fr; }
     .item:nth-child(even) { margin-top: 0; }
   }

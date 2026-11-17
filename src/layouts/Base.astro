@@ -47,9 +47,12 @@ const { title, description = 'Portfolio of Marcus Fan, software engineer' } = As
     --text-display: clamp(2.4rem, 5.2vw, 3.5rem); /* hero h1 */
 
     --pad: clamp(1.25rem, 3vw, 2.5rem);
+    --header-h: 4.25rem; /* sticky header height, used to offset anchor jumps */
   }
+  @media (max-width: 35em) { :root { --header-h: 6.5rem; } }
   * { box-sizing: border-box; margin: 0; }
   html {
+    scroll-padding-block-start: calc(var(--header-h) + 1rem);
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
