@@ -1,0 +1,124 @@
+---
+// Simplified, static UI mocks used in the showcase tiles and the detail cards.
+// Decorative only: the real details are in the surrounding text.
+import type { MockKind } from '../data/experience';
+interface Props { kind: MockKind; rich?: boolean }
+const { kind, rich = false } = Astro.props;
+---
+<div class={`frame frame-${kind}`} aria-hidden="true">
+  {kind === 'gma' && (
+    <div class="stack">
+      <div class="card">
+        <p class="t">Upload your video</p>
+        <div class="drop">Drop a video, up to 4 GB</div>
+        <div class="file"><span>child-14w.mp4</span><i style="--p:100%"></i><span>Sent</span></div>
+        <div class="file"><span>child-16w.mp4</span><i style="--p:60%"></i><span>60%</span></div>
+        <span class="ok">Private link, expires in 48 hours</span>
+      </div>
+      {rich && (
+        <div class="card sheet">
+          <p class="t">Tracking workbook</p>
+          <div class="row head"><span>Child</span><span>Video received</span></div>
+          <div class="row"><span>Child A</span><span class="stamp">Jul 14</span></div>
+          <div class="row"><span>Child B</span><span class="wait">Waiting</span></div>
+        </div>
+      )}
+    </div>
+  )}
+  {kind === 'veloce' && (
+    <div class="stack">
+      <div class="card quote">
+        <p class="t">Quote Q-1042, line items</p>
+        {[1, 1, 1, 0, 0].map((on) => (
+          <div class={`line ${on ? 'on' : ''}`}><b></b><i></i><em></em></div>
+        ))}
+        <div class="bulk"><span>3 selected</span><span class="edit">Edit all</span></div>
+      </div>
+      {rich && (
+        <div class="card error">
+          <p class="t err">Couldn’t save this quote</p>
+          <p class="msg">The discount is above your approval limit. Lower it, or send the quote for approval.</p>
+        </div>
+      )}
+    </div>
+  )}
+  {kind === 'nmd' && (
+    <div class="phone">
+      <div class="screen">
+        <p class="t">Today</p>
+        <div class="ev"><b>9:30 Physio, Main St</b><i></i></div>
+        <div class="leave">Leave in 12 min, 18 min drive</div>
+        <div class="ev"><b>12:00 Lunch, Granville</b><i></i></div>
+        <div class="ev"><b>15:00 Pharmacy</b><i></i></div>
+      </div>
+    </div>
+  )}
+  {kind === 'flowpt' && (
+    <div class="window">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <div class="body">
+        <div class="side"><i></i><i></i><i></i><i></i></div>
+        <div class="main">
+          <i class="h"></i><i></i><i></i>
+          <div class="sugg"><span>Suggested from earlier charts, on-device</span><i></i><i></i></div>
+          <i></i>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .frame { width: 100%; height: 100%; display: grid; place-items: center; padding: 1rem; font-family: var(--font-body); color: #141414; }
+  .frame-gma { background: #1f4e4a; }
+  .frame-veloce { background: #2b2b2b; }
+  .frame-nmd { background: #c9d8ea; }
+  .frame-flowpt { background: #e2d6c2; }
+
+  .stack { width: min(100%, 15.5rem); display: grid; gap: 0.75rem; }
+  .card { background: #fff; border-radius: 12px; padding: 1rem; display: grid; gap: 0.6rem; box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25); }
+  .t { font-size: 0.8rem; font-weight: 600; }
+  .drop { border: 1.5px dashed #c9c6bc; border-radius: 8px; padding: 1rem 0.5rem; text-align: center; font-size: 0.7rem; color: #5f5e5a; }
+  .file { display: flex; align-items: center; gap: 0.5rem; font-size: 0.65rem; }
+  .file i { flex: 1; height: 5px; border-radius: 3px; background: linear-gradient(90deg, #1f4e4a var(--p), #e6e3db var(--p)); }
+  .file span:last-child { color: #5f5e5a; }
+  .ok { justify-self: start; font-size: 0.65rem; font-weight: 500; color: #2f6b4f; background: #e6f2ea; border-radius: 999px; padding: 0.2rem 0.6rem; }
+  .sheet { gap: 0.35rem; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; font-size: 0.65rem; padding: 0.3rem 0; border-top: 1px solid #eee; }
+  .row.head { color: #5f5e5a; border-top: 0; }
+  .stamp { color: #2f6b4f; font-weight: 600; }
+  .wait { color: #8a5a12; }
+
+  .quote { background: #f4f3ef; gap: 0.45rem; }
+  .line { display: flex; align-items: center; gap: 0.5rem; background: #fff; border-radius: 6px; padding: 0.45rem 0.5rem; }
+  .line b { width: 11px; height: 11px; border-radius: 3px; border: 1px solid #c9c6bc; background: #fff; }
+  .line i { width: 55%; height: 6px; border-radius: 3px; background: #e6e3db; }
+  .line em { margin-left: auto; width: 18%; height: 6px; border-radius: 3px; background: #e6e3db; }
+  .line.on { background: #e7ecf7; }
+  .line.on b { background: #2d4fa8; border-color: #2d4fa8; }
+  .line.on i, .line.on em { background: #c3cde6; }
+  .bulk { display: flex; justify-content: space-between; align-items: center; background: #141414; color: #fff; border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 0.65rem; }
+  .edit { background: #5b7fd6; border-radius: 5px; padding: 0.15rem 0.5rem; font-weight: 600; }
+  .error { border-left: 4px solid #c23934; gap: 0.3rem; }
+  .err { color: #c23934; }
+  .msg { font-size: 0.68rem; line-height: 1.45; color: #2b2b2b; }
+
+  .phone { width: min(70%, 12.5rem); aspect-ratio: 180 / 290; background: #141414; border-radius: 30px; padding: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18); }
+  .screen { height: 100%; background: #fff; border-radius: 23px; padding: 1.4rem 0.7rem 0.7rem; display: grid; align-content: start; gap: 0.45rem; }
+  .ev { background: #f3f1ec; border-radius: 10px; padding: 0.45rem; display: grid; gap: 0.3rem; }
+  .ev b { font-size: 0.6rem; }
+  .ev i { width: 60%; height: 5px; border-radius: 3px; background: #e6e3db; }
+  .leave { background: #141414; color: #fff; border-radius: 10px; padding: 0.45rem; font-size: 0.58rem; font-weight: 600; text-align: center; }
+
+  .window { width: 100%; aspect-ratio: 700 / 380; background: #fff; border-radius: 8px; overflow: hidden; display: grid; grid-template-rows: 18px 1fr; box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15); }
+  .window .bar { background: #f1efe9; display: flex; gap: 4px; align-items: center; padding: 0 7px; }
+  .window .bar i { width: 6px; height: 6px; border-radius: 50%; background: #d6d3ca; }
+  .window .body { display: grid; grid-template-columns: 26% 1fr; }
+  .side { background: #faf9f6; border-right: 1px solid #eee; padding: 8px; display: grid; align-content: start; gap: 6px; }
+  .side i, .main > i, .sugg i { display: block; height: 5px; border-radius: 3px; background: #e6e3db; }
+  .main { padding: 10px; display: grid; align-content: start; gap: 6px; }
+  .main > i.h { width: 40%; height: 7px; background: #d6d3ca; }
+  .sugg { border: 1px dashed #9fc3b0; background: #f1f8f4; border-radius: 5px; padding: 6px; display: grid; gap: 4px; }
+  .sugg span { font-size: 0.5rem; font-weight: 600; color: #2f6b4f; }
+  .sugg i { background: #cfe3d7; }
+</style>

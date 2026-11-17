@@ -1,11 +1,12 @@
 ---
 import { projects } from '../data/projects';
-import NavDemo from './NavDemo.astro';
+import Mock from './Mock.astro';
 ---
 <section id="projects" class="proj">
   <h2>Projects</h2>
   {projects.map((p) => (
-    <article class="card">
+    <article class="card" id={`proj-${p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+      <div class="co-main">
       <div class="card-head">
         {p.logo && <img src={p.logo} alt="" width="52" height="52" />}
         <div class="titles">
@@ -16,7 +17,6 @@ import NavDemo from './NavDemo.astro';
       </div>
       <p class="summary">{p.summary}</p>
       <p class="built">{p.built}</p>
-      {p.demo && <button class="demo-btn launch" data-demo={p.demo}>▶ Launch interactive demo</button>}
 
       <div class="chips" aria-label="Filter highlights by theme">
         {p.skills.map((s) => <button class="chip" data-skill={s} aria-pressed="false">{s}</button>)}
@@ -34,17 +34,17 @@ import NavDemo from './NavDemo.astro';
                 </button>
                 <div class="hl-detail"><div class="inner">
                   <p>{h.detail}</p>
-                  {h.demo && <button class="demo-btn" data-demo={h.demo}>Open demo ▸</button>}
                 </div></div>
               </li>
             ))}
           </ul>
         </div>
       ))}
+      </div>
+      {p.mock && <aside class="co-mock"><Mock kind={p.mock} rich /></aside>}
     </article>
   ))}
 </section>
-<NavDemo />
 
 <script>
   document.querySelectorAll<HTMLElement>('#projects .card').forEach((card) => {
@@ -74,38 +74,38 @@ import NavDemo from './NavDemo.astro';
 </script>
 
 <style>
-  .proj { scroll-margin-top: 4.5rem; padding: 4rem 0; border-top: 1px solid var(--line); }
-  h2 { font-size: 1.8rem; margin-bottom: 0.8rem; }
-  .card { border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.2rem, 3vw, 2rem); background: rgba(255,255,255,0.03); }
+  .proj { scroll-margin-top: 4.5rem; padding: 4rem 0 2rem; border-top: 1px solid var(--line); }
+  .proj > h2 { margin-bottom: 1.5rem; }
+  .card + .card { margin-top: 1.25rem; }
+  .card { scroll-margin-top: 5rem; border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.25rem, 3vw, 2rem); background: var(--surface); }
+  .card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+  .co-mock { position: sticky; top: 6rem; border-radius: 10px; overflow: hidden; min-height: 22rem; display: grid; }
+  @media (max-width: 860px) { .card { grid-template-columns: 1fr; } .co-mock { position: static; order: -1; min-height: 18rem; } }
   .card-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
   .card-head img { border-radius: 12px; }
   .titles { flex: 1; min-width: 12rem; }
-  h3 { font-size: 1.5rem; line-height: 1.2; }
-  .tag { color: var(--accent); font-size: 0.95rem; }
-  .status { font-size: 0.78rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0.2rem 0.75rem; }
+  .tag { color: var(--muted); font-size: var(--text-body); margin-top: 0.2rem; }
+  .status { font-size: var(--text-caption); font-weight: 500; color: var(--fg); border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 0.25rem 0.8rem; white-space: nowrap; }
   .summary { color: var(--muted); margin: 1rem 0 0.4rem; max-width: 62ch; }
-  .built { font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--muted); opacity: 0.8; margin-bottom: 0.9rem; }
-  .demo-btn { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--accent); border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; margin-top: 0.7rem; }
-  .demo-btn.launch { margin: 0 0 1.2rem; }
-  .demo-btn:hover { background: var(--accent); color: #0b0d12; }
+  .built { font-size: var(--text-caption); color: var(--muted); margin-bottom: 0.9rem; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.4rem; }
-  .chip { font: inherit; font-size: 0.82rem; font-family: ui-monospace, monospace; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 0.25rem 0.75rem; cursor: pointer; transition: all 0.2s; }
-  .chip:hover { color: var(--fg); border-color: var(--accent); }
-  .chip[aria-pressed='true'] { background: var(--accent); color: #0b0d12; border-color: var(--accent); }
+  .chip { font: inherit; font-size: var(--text-caption); font-weight: 500; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.8rem; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; white-space: nowrap; }
+  .chip:hover { border-color: var(--fg); }
+  .chip[aria-pressed='true'] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .group { margin-bottom: 1.4rem; }
-  h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.6rem; }
+  h4 { font-size: var(--text-label); font-weight: 600; color: var(--muted); margin-bottom: 0.6rem; }
   .highlights { list-style: none; padding: 0; display: grid; gap: 0.6rem; }
-  .hl { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: opacity 0.25s, border-color 0.25s, background 0.25s; }
-  .hl.dim { opacity: 0.3; }
-  .hl.match { border-color: var(--accent); background: rgba(124,156,255,0.07); }
-  .hl-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; padding: 0.9rem 1rem; cursor: pointer; }
-  .hl-btn:hover { background: rgba(255,255,255,0.04); }
+  .hl { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; transition: opacity 0.25s, border-color 0.25s; }
+  .hl.dim { opacity: 0.35; }
+  .hl.match { border-color: var(--accent); }
+  .hl-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; line-height: 1.4; padding: 0.9rem 1rem; cursor: pointer; }
+  .hl-btn:hover { background: rgba(43, 43, 43, 0.04); }
   .plus { color: var(--accent); font-size: 1.3rem; line-height: 1; transition: transform 0.25s; }
   .hl.open .plus { transform: rotate(45deg); }
   .hl-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
   .hl.open .hl-detail { grid-template-rows: 1fr; }
   .hl-detail > .inner { overflow: hidden; padding: 0 1rem; }
-  .hl-detail p { color: var(--muted); }
+  .hl-detail p { color: var(--muted); max-width: 62ch; }
   .hl.open .hl-detail > .inner { padding-bottom: 1rem; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>

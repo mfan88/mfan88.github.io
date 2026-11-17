@@ -1,16 +1,15 @@
 ---
 import { companies } from '../data/experience';
-import SfModal from './SfModal.astro';
-import GmaDemo from './GmaDemo.astro';
+import Mock from './Mock.astro';
 ---
 <section id="experience" class="exp">
   <h2>Experience</h2>
   {companies.map((company) => (
-  <div class="company">
+  <div class="company" id={`exp-${company.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+    <div class="co-main">
     <div class="company-head">
       <h3>{company.name}</h3>
       {company.location && <span class="muted">{company.location}</span>}
-      {company.demo && <button class="demo-btn launch" data-demo={company.demo}>▶ Launch interactive demo</button>}
     </div>
 
     {company.roles.length > 1 && (
@@ -40,17 +39,17 @@ import GmaDemo from './GmaDemo.astro';
                 <span class="hl-title">{h.title}</span>
                 <span class="plus" aria-hidden="true">+</span>
               </button>
-              <div class="hl-detail"><div class="inner"><p>{h.detail}</p>{h.demo && <button class="demo-btn" data-demo={h.demo}>Open demo ▸</button>}</div></div>
+              <div class="hl-detail"><div class="inner"><p>{h.detail}</p></div></div>
             </li>
           ))}
         </ul>
       </div>
     ))}
+    </div>
+    {company.mock && <aside class="co-mock"><Mock kind={company.mock} rich /></aside>}
   </div>
   ))}
 </section>
-<SfModal />
-<GmaDemo />
 
 <script>
   document.querySelectorAll<HTMLElement>('#experience .company').forEach((co) => {
@@ -95,37 +94,37 @@ import GmaDemo from './GmaDemo.astro';
 </script>
 
 <style>
-  .exp { scroll-margin-top: 4.5rem; padding: 4rem 0; border-top: 1px solid var(--line); }
-  .company + .company { margin-top: 1.5rem; }
-  .company { border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.2rem, 3vw, 2rem); background: rgba(255,255,255,0.03); }
+  .exp { scroll-margin-top: 4.5rem; padding: 4rem 0 2rem; border-top: 1px solid var(--line); }
+  .exp > h2 { margin-bottom: 1.5rem; }
+  .company + .company { margin-top: 1.25rem; }
+  .company { scroll-margin-top: 5rem; border: 1px solid var(--line); border-radius: 14px; padding: clamp(1.25rem, 3vw, 2rem); background: var(--surface); }
+  .company { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+  .co-mock { position: sticky; top: 6rem; border-radius: 10px; overflow: hidden; min-height: 22rem; display: grid; }
+  @media (max-width: 860px) { .company { grid-template-columns: 1fr; } .co-mock { position: static; order: -1; min-height: 18rem; } }
   .company-head { display: flex; align-items: baseline; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  h3 { font-size: 1.5rem; }
-  .muted { color: var(--muted); font-size: 0.9rem; }
+  .muted { color: var(--muted); font-size: var(--text-label); }
   .role-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
-  .role-tabs button { background: none; border: 1px solid var(--line); color: var(--muted); padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer; font: inherit; font-size: 0.9rem; }
-  .role-tabs button.active { color: var(--fg); border-color: var(--accent); }
+  .role-tabs button { background: none; border: 1px solid var(--line); color: var(--muted); padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer; font: inherit; font-size: var(--text-label); }
+  .role-tabs button.active { color: var(--fg); border-color: var(--fg); }
   .role-meta { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .badge { margin-left: 0.6rem; font-size: 0.72rem; font-weight: 500; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: middle; }
-  .summary { color: var(--muted); margin: 0.5rem 0 1.2rem; max-width: 60ch; }
+  .badge { margin-left: 0.6rem; font-size: var(--text-caption); font-weight: 500; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: middle; white-space: nowrap; }
+  .summary { color: var(--muted); margin: 0.5rem 0 1.2rem; max-width: 62ch; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
-  .chip { font: inherit; font-size: 0.82rem; font-family: ui-monospace, monospace; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 0.25rem 0.75rem; cursor: pointer; transition: all 0.2s; }
-  .chip:hover { color: var(--fg); border-color: var(--accent); }
-  .chip[aria-pressed='true'] { background: var(--accent); color: #0b0d12; border-color: var(--accent); }
+  .chip { font: inherit; font-size: var(--text-caption); font-weight: 500; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.8rem; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; white-space: nowrap; }
+  .chip:hover { border-color: var(--fg); }
+  .chip[aria-pressed='true'] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .highlights { list-style: none; padding: 0; display: grid; gap: 0.6rem; }
-  .hl { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: opacity 0.25s, border-color 0.25s, background 0.25s; }
-  .hl.dim { opacity: 0.3; }
-  .hl.match { border-color: var(--accent); background: rgba(124,156,255,0.07); }
-  .hl-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; padding: 0.9rem 1rem; cursor: pointer; }
-  .hl-btn:hover { background: rgba(255,255,255,0.04); }
+  .hl { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; transition: opacity 0.25s, border-color 0.25s; }
+  .hl.dim { opacity: 0.35; }
+  .hl.match { border-color: var(--accent); }
+  .hl-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; text-align: left; line-height: 1.4; padding: 0.9rem 1rem; cursor: pointer; }
+  .hl-btn:hover { background: rgba(43, 43, 43, 0.04); }
   .plus { color: var(--accent); font-size: 1.3rem; line-height: 1; transition: transform 0.25s; }
   .hl.open .plus { transform: rotate(45deg); }
   .hl-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
   .hl.open .hl-detail { grid-template-rows: 1fr; }
   .hl-detail > .inner { overflow: hidden; padding: 0 1rem; }
-  .hl-detail p { color: var(--muted); }
+  .hl-detail p { color: var(--muted); max-width: 62ch; }
   .hl.open .hl-detail > .inner { padding-bottom: 1rem; }
-  .demo-btn { margin-top: 0.7rem; font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--accent); border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; }
-  .demo-btn.launch { margin: 0 0 0 auto; }
-  .demo-btn:hover { background: var(--accent); color: #0b0d12; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>

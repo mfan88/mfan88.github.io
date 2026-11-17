@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Showcase from '../components/Showcase.astro';
 import Experience from '../components/Experience.astro';
 import Projects from '../components/Projects.astro';
 
@@ -8,98 +9,128 @@ const links = {
   github: 'https://github.com/mfan88',
 };
 const nav = [
-  { href: '#about', label: 'About' },
   { href: '#experience', label: 'Experience' },
   { href: '#projects', label: 'Projects' },
+  { href: '#about', label: 'About' },
   { href: '#contact', label: 'Contact' },
 ];
 ---
-<Base title="Marcus Fan — Portfolio">
+<Base title="Marcus Fan, software engineer">
   <header class="site-header">
-    <a class="logo" href="#top">MF<span>.</span></a>
-    <nav>
+    <a class="logo" href="#top">Marcus Fan</a>
+    <nav aria-label="Main">
       {nav.map((n) => <a href={n.href}>{n.label}</a>)}
-      <a class="pill" href={links.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
     </nav>
   </header>
 
   <main id="top">
     <section class="hero">
-      <p class="eyebrow">West Vancouver, BC</p>
-      <h1>Hi, I'm <span class="grad">Marcus Fan</span>.</h1>
-      <p class="lead">I build things to help people. This is a work in progress — more coming soon.</p>
+      <h1>
+        <span>Marcus Fan, software engineer.</span>
+        <span>I ship software that real users depend on.</span>
+      </h1>
+      <p class="lead">
+        Third-year Software Engineering and Ivey HBA dual degree at Western University, graduating 2029.
+        Most recently I built a secure video-upload portal for the Developmental Disabilities Association
+        and shipped Salesforce CPQ features at Veloce.
+      </p>
       <div class="cta">
-        <a class="btn primary" href={links.linkedin} target="_blank" rel="noopener noreferrer">Connect on LinkedIn</a>
+        <a class="btn primary" href="#experience">See experience</a>
         <a class="btn" href={links.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="btn" href={links.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </div>
     </section>
 
-    <section id="about" class="about">
-      <h2>About</h2>
-      <div class="about-grid">
-        <div class="about-text">
-          <p>I'm a software engineering and business student who loves watching new technology turn into something genuinely useful, and I'm always looking for ways to put it in the hands of everyday professionals.</p>
-          <p>I'm also an entrepreneur working to help the care and healthcare sector support its professionals and the people they serve, at free or affordable rates.</p>
-          <p class="muted">Outside of work, I like helping where I can, including volunteering with people with special needs. It's usually the best part of my week.</p>
+    <Showcase />
+
+    <div class="details">
+      <Experience />
+      <Projects />
+
+      <p class="also">
+        <span class="also-label">Also</span>
+        <span>Founder of fenna.tech (June 2026 to present), a small studio where I build FlowPT and other tools for clinics.</span>
+      </p>
+
+      <section id="about" class="about">
+        <h2>About</h2>
+        <div class="about-grid">
+          <div class="about-text">
+            <p>I'm a software engineering and business student who loves watching new technology turn into something genuinely useful, and I'm always looking for ways to put it in the hands of everyday professionals.</p>
+            <p>I'm also an entrepreneur working to help the care and healthcare sector support its professionals and the people they serve, at free or affordable rates.</p>
+            <p class="muted">Outside of work, I like helping where I can, including volunteering with people with special needs. It's usually the best part of my week.</p>
+          </div>
+          <img class="headshot" src="/headshot.jpg" alt="Headshot of Marcus Fan" width="900" height="900" />
         </div>
-        <img class="headshot" src="/headshot.jpg" alt="Headshot of Marcus Fan" width="900" height="900" />
-      </div>
-    </section>
-    <Experience />
-    <Projects />
-    <section id="contact">
-      <h2>Contact</h2>
-      <p class="muted">Find me on <a href={links.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a> or <a href={links.github} target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
-    </section>
+      </section>
+    </div>
   </main>
 
-  <footer>© {new Date().getFullYear()} Marcus Fan</footer>
+  <footer id="contact" class="contact">
+    <h2>
+      <span>Hiring for a software engineering role?</span>
+      <span>I’d like to hear about it.</span>
+    </h2>
+    <div class="cta">
+      <a class="btn light" href={links.linkedin} target="_blank" rel="noopener noreferrer">Message me on LinkedIn</a>
+      <a class="btn outline" href={links.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+    <p class="fine">English and French (DELF B2). Based in Vancouver, studying in London, Ontario. © {new Date().getFullYear()} Marcus Fan</p>
+  </footer>
 </Base>
 
 <style>
   .site-header {
     position: sticky; top: 0; z-index: 10;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 1rem clamp(1.25rem, 5vw, 4rem);
-    backdrop-filter: blur(14px); background: rgba(11, 13, 18, 0.6);
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: 1.1rem var(--pad);
+    background: rgba(234, 233, 230, 0.88); backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--line);
   }
-  .logo { font-weight: 800; font-size: 1.3rem; color: var(--fg); text-decoration: none; letter-spacing: -0.02em; }
-  .logo span { color: var(--accent); }
-  nav { display: flex; gap: 1.4rem; align-items: center; }
-  nav a { color: var(--muted); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
+  .logo { font-family: var(--font-display); font-weight: 700; font-size: 1.125rem; text-decoration: none; white-space: nowrap; }
+  nav { display: flex; gap: clamp(1rem, 2.5vw, 2rem); }
+  nav a { color: var(--muted); text-decoration: none; font-size: var(--text-label); }
   nav a:hover { color: var(--fg); }
-  nav .pill {
-    color: var(--fg); padding: 0.4rem 0.9rem; border-radius: 999px;
-    border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04);
-  }
-  nav .pill:hover { border-color: var(--accent); }
+
   section { scroll-margin-top: 4.5rem; }
-  main { padding: 0 clamp(1.25rem, 5vw, 4rem); max-width: 1100px; margin: 0 auto; }
-  .hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; gap: 1.2rem; }
-  .eyebrow { color: var(--accent); font-family: ui-monospace, monospace; font-size: 0.9rem; }
-  h1 { font-size: clamp(2.6rem, 8vw, 5.5rem); line-height: 1.05; letter-spacing: -0.03em; }
-  .grad { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .lead { color: var(--muted); font-size: 1.2rem; max-width: 40ch; }
-  .cta { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.6rem; }
+  .hero { padding: clamp(4rem, 10vw, 7.5rem) var(--pad) clamp(2rem, 5vw, 3rem); display: grid; gap: 1.75rem; }
+  .hero h1 { font-size: var(--text-display); line-height: 1.1; letter-spacing: -0.01em; text-wrap: initial; }
+  .hero h1 span, .contact h2 span { display: block; }
+  .lead { font-size: var(--text-lead); line-height: 1.5; color: var(--muted); max-width: 62ch; }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
   .btn {
-    padding: 0.75rem 1.4rem; border-radius: 12px; text-decoration: none; color: var(--fg);
-    border: 1px solid var(--line); transition: transform 0.2s, border-color 0.2s;
+    display: inline-flex; align-items: center; padding: 0.7rem 1.15rem; border-radius: 10px;
+    font-size: var(--text-label); font-weight: 600; line-height: 1.2; text-decoration: none; white-space: nowrap;
+    border: 1px solid rgba(43, 43, 43, 0.25); color: var(--fg);
+    transition: background-color 0.2s, border-color 0.2s;
   }
-  .btn:hover { transform: translateY(-2px); border-color: var(--accent); }
-  .btn.primary { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #0b0d12; font-weight: 600; border: none; }
-  section:not(.hero) { padding: 4rem 0; border-top: 1px solid var(--line); }
-  h2 { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .btn:hover { border-color: var(--fg); }
+  .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .btn.primary:hover { background: #000; }
+
+  .details { padding: 0 var(--pad); max-width: 1180px; }
+  .also {
+    display: flex; gap: 2rem; align-items: baseline; flex-wrap: wrap;
+    padding: 1.5rem 0; margin: 1rem 0 0; border-block: 1px solid var(--line); color: var(--muted);
+  }
+  .also-label { font-weight: 600; }
+
+  .about { padding: 4rem 0 6rem; }
+  .about h2 { margin-bottom: 1.25rem; }
+  .about-grid { display: grid; grid-template-columns: 1fr minmax(220px, 320px); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+  .about p { max-width: 62ch; margin-bottom: 0.9rem; }
   .muted { color: var(--muted); }
-  .about-grid { display: grid; grid-template-columns: 1fr minmax(220px, 340px); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
-  .headshot { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; display: block;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
-    -webkit-mask-composite: source-in;
-            mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent), linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
-            mask-composite: intersect; }
-  @media (max-width: 720px) { .about-grid { grid-template-columns: 1fr; } .headshot { max-width: 280px; order: -1; margin: 0 auto; } }
-  .about p { max-width: 62ch; font-size: 1.08rem; margin-bottom: 0.9rem; }
-  .muted a { color: var(--accent); }
-  footer { text-align: center; color: var(--muted); padding: 3rem 1rem; font-size: 0.85rem; }
-  @media (max-width: 560px) { nav a:not(.pill) { display: none; } }
+  .headshot { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 6px; }
+  @media (max-width: 720px) { .about-grid { grid-template-columns: 1fr; } .headshot { max-width: 280px; order: -1; } }
+
+  .contact { background: #161616; color: #f6f5f1; padding: clamp(4rem, 8vw, 6rem) var(--pad) 3rem; display: grid; gap: 2.5rem; }
+  .contact h2 { font-size: clamp(2rem, 4.2vw, 3.25rem); line-height: 1.1; letter-spacing: -0.01em; text-wrap: initial; }
+  .btn.light { background: #f6f5f1; color: #161616; border-color: #f6f5f1; }
+  .btn.outline { color: #f6f5f1; border-color: rgba(246, 245, 241, 0.35); }
+  .btn.outline:hover { border-color: #f6f5f1; }
+  .fine { color: #bdbab1; font-size: var(--text-label); }
+
+  @media (max-width: 560px) { nav { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
 </style>

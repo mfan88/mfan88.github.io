@@ -1,6 +1,12 @@
 ---
+// Self-hosted fonts (bundled at build time, no third-party request on GitHub Pages)
+import '@fontsource/syne/700.css';
+import '@fontsource/atkinson-hyperlegible-next/400.css';
+import '@fontsource/atkinson-hyperlegible-next/500.css';
+import '@fontsource/atkinson-hyperlegible-next/600.css';
+
 interface Props { title: string; description?: string }
-const { title, description = 'Portfolio of Marcus Fan' } = Astro.props;
+const { title, description = 'Portfolio of Marcus Fan, software engineer' } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
@@ -12,37 +18,63 @@ const { title, description = 'Portfolio of Marcus Fan' } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
-    <div class="glow g1"></div>
-    <div class="glow g2"></div>
     <slot />
   </body>
 </html>
 
 <style is:global>
   :root {
-    --bg: #0b0d12;
-    --fg: #e8ebf3;
-    --muted: #8b93a7;
-    --accent: #7c9cff;
-    --accent2: #c58bff;
-    --line: rgba(255, 255, 255, 0.08);
+    /* Colour */
+    --bg: #eae9e6;
+    --surface: #f5f4f1;
+    --fg: #2b2b2b;
+    --muted: #5f5e5a;
+    --line: rgba(43, 43, 43, 0.14);
+    --accent: #1f4e4a;
+    --on-accent: #ffffff;
+
+    /* Type: Syne for display, Atkinson Hyperlegible Next for everything else */
+    --font-display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Atkinson Hyperlegible Next', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* Type scale (role → size); line-height and weight are paired in the rules below */
+    --text-caption: 0.8125rem;   /* 13px */
+    --text-label: 0.9375rem;     /* 15px */
+    --text-body: 1.0625rem;      /* 17px */
+    --text-lead: 1.25rem;        /* 20px */
+    --text-title: 1.5rem;        /* 24px, card titles */
+    --text-heading: clamp(2rem, 3.4vw, 2.5rem);   /* section h2 */
+    --text-display: clamp(2.4rem, 5.2vw, 3.5rem); /* hero h1 */
+
+    --pad: clamp(1.25rem, 3vw, 2.5rem);
   }
   * { box-sizing: border-box; margin: 0; }
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body {
     background: var(--bg);
     color: var(--fg);
-    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
-    line-height: 1.6;
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.55;
     min-height: 100vh;
     overflow-x: hidden;
   }
-  .glow {
-    position: fixed; z-index: -1; border-radius: 50%;
-    filter: blur(120px); opacity: 0.35; pointer-events: none;
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    text-wrap: balance;
   }
-  .g1 { width: 520px; height: 520px; background: var(--accent); top: -160px; left: -120px; animation: drift 18s ease-in-out infinite alternate; }
-  .g2 { width: 440px; height: 440px; background: var(--accent2); bottom: -140px; right: -100px; animation: drift 22s ease-in-out infinite alternate-reverse; }
-  @keyframes drift { to { transform: translate(60px, 40px) scale(1.1); } }
-  @media (prefers-reduced-motion: reduce) { .glow { animation: none; } html { scroll-behavior: auto; } }
+  h2 { font-size: var(--text-heading); }
+  h3 { font-size: var(--text-title); }
+  p { text-wrap: pretty; }
+  a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: from-font; }
+  :focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 4px; }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>

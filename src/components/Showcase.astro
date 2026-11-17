@@ -1,0 +1,106 @@
+---
+import Mock from './Mock.astro';
+import type { MockKind } from '../data/experience';
+// Visual-first overview of experience and projects (staggered, numbered columns).
+// Each title links to the detailed section further down the page.
+const items = [
+  {
+    n: '01',
+    label: 'Experience at the DDA, 2026',
+    title: 'GMA Upload Portal',
+    desc: 'A secure portal that takes a family’s assessment video from one private link to the clinic’s files and spreadsheet.',
+    href: '#exp-gma-upload-portal',
+    tile: 'gma',
+  },
+  {
+    n: '02',
+    label: 'Internship at Veloce, 2025',
+    title: 'Salesforce CPQ',
+    desc: 'Bulk line-item editing about 3× faster, a quicker quote editor and plain-language errors.',
+    href: '#exp-veloce',
+    tile: 'veloce',
+  },
+  {
+    n: '03',
+    label: 'iOS app, in TestFlight',
+    title: 'NavigateMyDay',
+    desc: 'Turns calendar events into directions, with widgets, CarPlay, Siri and an Assisted Care mode.',
+    href: '#proj-navigatemyday',
+    tile: 'nmd',
+  },
+  {
+    n: '04',
+    label: 'Desktop app, in progress',
+    title: 'FlowPT',
+    desc: 'Local-first clinic software with an on-device model that drafts notes from earlier charts.',
+    href: '#proj-flowpt',
+    tile: 'flowpt',
+  },
+];
+---
+<section class="showcase" aria-labelledby="showcase-title">
+  <h2 id="showcase-title">Experience and projects</h2>
+  <ol class="grid">
+    {items.map((it) => (
+      <li class="item">
+        <div class="media">
+          <span class="num" aria-hidden="true">{it.n}</span>
+          <div class="tile"><Mock kind={it.tile as MockKind} /></div>
+        </div>
+        <p class="label">{it.label}</p>
+        <h3>
+          <a href={it.href}>
+            <span>{it.title}</span>
+            <svg class="arrow" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="20" cy="20" r="20" />
+              <path d="M12 20h15M21 14l6 6-6 6" />
+            </svg>
+          </a>
+        </h3>
+        <p class="desc">{it.desc}</p>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .showcase { padding: clamp(3rem, 6vw, 5rem) var(--pad) clamp(4rem, 8vw, 7rem); scroll-margin-top: 4.5rem; }
+  .grid {
+    list-style: none; padding: 0; margin-top: clamp(2rem, 4vw, 3.5rem);
+    display: grid; gap: clamp(2.5rem, 4vw, 3rem) 2rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  /* Stagger: even columns sit lower */
+  .item:nth-child(even) { margin-top: 7.5rem; }
+
+  .media { position: relative; padding-top: clamp(3.5rem, 5vw, 4.75rem); }
+  .num {
+    position: absolute; top: -0.3em; right: 0.25rem; z-index: 0;
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(6rem, 10vw, 9.5rem); line-height: 1; letter-spacing: -0.02em;
+    color: var(--fg); user-select: none;
+  }
+  .tile {
+    position: relative; z-index: 1; aspect-ratio: 316 / 372; border-radius: 6px; overflow: hidden;
+    
+  }
+
+  .label { margin-top: 1.75rem; font-size: var(--text-label); font-weight: 500; line-height: 1.4; }
+  h3 { margin-top: 0.9rem; }
+  h3 a { display: inline-flex; align-items: center; gap: 0.85rem; text-decoration: none; }
+  h3 a:hover span { text-decoration: underline; }
+  .arrow { flex: none; width: 2.5rem; height: 2.5rem; transition: transform 0.2s ease; }
+  .arrow circle { fill: var(--fg); }
+  .arrow path { fill: none; stroke: var(--bg); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  h3 a:hover .arrow { transform: translateX(3px); }
+  .desc { margin-top: 0.9rem; color: var(--muted); line-height: 1.5; max-width: 40ch; }
+
+  @media (max-width: 1100px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .item:nth-child(even) { margin-top: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .arrow { transition: none; } }
+</style>
